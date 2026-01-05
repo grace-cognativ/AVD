@@ -41,13 +41,13 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 | TC-ID | Test Case | Expected Result | Pass/Fail | Actual Results |
 |-------|-----------|-----------------|----------|---------|
 | AUTH-001 | Request without Authorization header | 401 Unauthorized with appropriate error message | Fail | **Error: response status is 401 without error message** |
-| AUTH-002 | Request with invalid JWT token format | 401 Unauthorized with validation error | Fail | **Error: response status is 401 without error message**
-| AUTH-003 | Request with expired JWT token | 401 Unauthorized with expiration error | Pass |**Error: response status is 401** ```{"success": false,"error": {"code": "UNAUTHORIZED","message": "Authentication Failed","details": null,"errors": {}},"metadata": {"message": "Token has expired"  }}```
-| AUTH-004 | Request with valid JWT token in Authorization header | Request processed successfully | Pass | '''{"success": true,"data": {"batchId": "BATCH-2025-12-16-001","totalItems": 2"processedItems": 0,"success": false,"legacyResponses": [],"failedAtIndex": 0,"validationErrors": {"Item[0].external_source_id": ["External source ID is required"]}}}'''
-| AUTH-005 | Request with JWT token missing required claims (sub, scope, iss, aud) | 401 Unauthorized with missing claim error | Pass |**Error: response status is 401** '''{"success": false"error": {"code": "UNAUTHORIZED","message": "Authentication Failed","details": null,"errors"{}},"metadata": {"message": "Invalid token}}'''
-| AUTH-006 | Request with JWT token from incorrect issuer | 401 Unauthorized with issuer validation error | Fail |**Error: response status is 401 without error message**
-| AUTH-007 | Request with JWT token for incorrect audience | 401 Unauthorized with audience validation error | Pass |**Error: response status is 401** {"success": false,"error": {"code": "UNAUTHORIZED","message": "Authentication Failed","details": null,"errors": {}},"metadata": {"message": "Invalid token"}}
-| AUTH-008 | Health check endpoints without authentication | Request succeeds (health endpoints are public) | Fail |**Error: response status is 503** {status": "Not Ready","totalDurationMs": 181"timestamp": "2025-12-31T12:54:35.326472+00:00","success": false,"data": {"main_api": "status":"Ready","durationMs": 0},"format_management_service": {"status": "Ready","description": "Format Management Service is healthy","durationMs": 181},"legacy_service": {"status": "Not Ready""description": "Legacy Service is unhealthy","durationMs": 7}}}
+| AUTH-002 | Request with invalid JWT token format | 401 Unauthorized with validation error | Fail | **Error: response status is 401 without error message** |
+| AUTH-003 | Request with expired JWT token | 401 Unauthorized with expiration error | Pass | **Error: response status is 401** ```{"success": false,"error": {"code": "UNAUTHORIZED","message": "Authentication Failed","details": null,"errors": {}},"metadata": {"message": "Token has expired"}}``` |
+| AUTH-004 | Request with valid JWT token in Authorization header | Request processed successfully | Pass | ```{"success": true,"data": {"batchId": "BATCH-2025-12-16-001","totalItems": 2,"processedItems": 0,"success": false,"legacyResponses": [],"failedAtIndex": 0,"validationErrors": {"Item[0].external_source_id": ["External source ID is required"]}}}``` |
+| AUTH-005 | Request with JWT token missing required claims (sub, scope, iss, aud) | 401 Unauthorized with missing claim error | Pass | **Error: response status is 401** ```{"success": false,"error": {"code": "UNAUTHORIZED","message": "Authentication Failed","details": null,"errors":{}},"metadata": {"message": "Invalid token"}}``` |
+| AUTH-006 | Request with JWT token from incorrect issuer | 401 Unauthorized with issuer validation error | Fail | **Error: response status is 401 without error message** |
+| AUTH-007 | Request with JWT token for incorrect audience | 401 Unauthorized with audience validation error | Pass | **Error: response status is 401** ```{"success": false,"error": {"code": "UNAUTHORIZED","message": "Authentication Failed","details": null,"errors": {}},"metadata": {"message": "Invalid token"}}``` |
+| AUTH-008 | Health check endpoints without authentication | Request succeeds (health endpoints are public) | Fail | **Error: response status is 503** ```{"status": "Not Ready","totalDurationMs": 181,"timestamp": "2025-12-31T12:54:35.326472+00:00","success": false,"data": {"main_api": {"status":"Ready","durationMs": 0},"format_management_service": {"status": "Ready","description": "Format Management Service is healthy","durationMs": 181},"legacy_service": {"status": "Not Ready","description": "Legacy Service is unhealthy","durationMs": 7}}}``` |
 
 **Acceptance Criteria:**
 
@@ -62,10 +62,9 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 | TC-ID | Test Case | Expected Result | Pass/Fail |Actual Results
 |-------|-----------|-----------------|----------|-----------|
-| AUTH-009 | STP endpoint with token missing `addvantage.stp` scope | 403 Forbidden (if policy enforced) | Partial Fail| response status is 401(needs clarity as policy is not enforced at the moment)
-| AUTH-009 | STP endpoint with token missing `addvantage.stp` scope | 403 Forbidden (if policy enforced) | Partial Fail| response status is 401(needs clarity as policy is not enforced at the moment)
-| AUTH-010 | Inquiry endpoint with token missing `addvantage.inquiry` scope | 403 Forbidden (if policy enforced) |Partial Fail |response status is 401(needs clarity as policy is not enforced at the moment)
-| AUTH-011 | Request with token having appropriate scope for both addvantage.stp and addvantage.inquiry | Request processed successfully | Pass |response status is 200
+| AUTH-009 | STP endpoint with token missing `addvantage.stp` scope | 403 Forbidden (if policy enforced) | Partial Fail | Response status is 401 (needs clarity as policy is not enforced at the moment) |
+| AUTH-010 | Inquiry endpoint with token missing `addvantage.inquiry` scope | 403 Forbidden (if policy enforced) | Partial Fail | Response status is 401 (needs clarity as policy is not enforced at the moment) |
+| AUTH-011 | Request with token having appropriate scope for both addvantage.stp and addvantage.inquiry | Request processed successfully | Pass | Response status is 200 |
 
 **Acceptance Criteria:**
 
@@ -88,15 +87,15 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 | STP-003 | STP request with missing `fields` dictionary | 400 Bad Request with validation error for fields | Pass |
 | STP-004 | STP request with empty `fields` dictionary | 400 Bad Request with validation error indicating fields cannot be empty | Pass |
 | STP-005 | STP request with invalid operation name | 404 Not Found with FormatNotFound error | Pass |
-| STP-006 | STP request missing `AddVantage-Authorization` header | 400 Bad Request with validation error for missing header | Fail |No error response
-| STP-007 | STP request missing `uuid` header | 400 Bad Request with validation error for missing UUID header | Fail |
+| STP-006 | STP request missing `AddVantage-Authorization` header | 400 Bad Request with validation error for missing header | Fail | No error response |
+| STP-007 | STP request missing `uuid` header | 400 Bad Request with validation error for missing UUID header | Fail | No error response |
 | STP-008 | STP request with invalid UUID format | 400 Bad Request with validation error for invalid UUID format | Pass |
 | STP-009 | STP request with invalid `AddVantage-Authorization` format | 400 Bad Request with validation error | Pass |
 | STP-010 | STP request with fields failing format validation rules | 400 Bad Request with field-specific validation errors | Pass|
 | STP-011 | STP request with non-JSON Content-Type | 400 Bad Request or 415 Unsupported Media Type | Pass |Used Postman here
 | STP-012 | STP request with malformed JSON body | 400 Bad Request with JSON parsing error | Pass |
-| STP-013 | STP request when Format Management Service is unavailable | 502 Bad Gateway with ExternalServiceError | Fail |Returns 404
-| STP-014 | STP request when Legacy Service is unavailable | 502 Bad Gateway with ExternalServiceError | P1 |
+| STP-013 | STP request when Format Management Service is unavailable | 502 Bad Gateway with ExternalServiceError | Fail | Returns 404 instead of expected 502
+| STP-014 | STP request when Legacy Service is unavailable | 502 Bad Gateway with ExternalServiceError | TBD | Not yet tested
 
 **Acceptance Criteria:**
 
@@ -158,13 +157,13 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 | BATCH-001 | Valid batch request with multiple items | 200 OK with batch response containing all items processed | Pass|
 | BATCH-002 | Batch request with empty items array | 400 Bad Request with error indicating batch cannot be empty | Pass |
 | BATCH-003 | Batch request with null items | 400 Bad Request with error indicating batch cannot be empty | Pass |
-| BATCH-004 | Batch request exceeding MaxBatchSize (100 items) | 429 Too Many Requests with rate limit error | Partial Pass | Error response status is 429 ({"success": false,"error": {"code":"RATE_LIMIT_EXCEEDED","message": "Rate limit exceeded. Try again in 0 seconds.","errors":{}},"metadata": {"correlationId": "4065ccf0-94f5-45ce-b072-addbdd202eae","timestamp":"2026-01-02T09:43:01.4372523Z"}})	edit message to"Rate limit exceeded MaxBatchSize (100 items)
+| BATCH-004 | Batch request exceeding MaxBatchSize (100 items) | 429 Too Many Requests with rate limit error | Partial Pass | Error response status is 429 ({"success": false,"error": {"code":"RATE_LIMIT_EXCEEDED","message": "Rate limit exceeded. Try again in 0 seconds.","errors":{}},"metadata": {"correlationId": "4065ccf0-94f5-45ce-b072-addbdd202eae","timestamp":"2026-01-02T09:43:01.4372523Z"}}) - message should be updated to "Rate limit exceeded MaxBatchSize (100 items)"
 | BATCH-005 | Batch request with invalid item at index 0 | 400 Bad Request with validation errors | Pass|
 | BATCH-006 | Batch request with invalid item at middle index | 200 OK with partial success, failedAtIndex set, validationErrors populated | Pass |
 | BATCH-007 | Batch request with batchId provided | 200 OK with same batchId in response | Pass |
-| BATCH-008 | Batch request when batch processing timeout exceeds | 504 Gateway Timeout with timeout error |  |
+| BATCH-008 | Batch request when batch processing timeout exceeds | 504 Gateway Timeout with timeout error | TBD | Not yet tested
 | BATCH-009 | Batch request with all items succeeding | 200 OK with success: true, failedAtIndex: null | Fail |FailedAtIndex:0 since external source id is required
-| BATCH-010 | Batch request with mixed success/failure | 200 OK with success: false, failedAtIndex set, legacyResponses for successful items | |
+| BATCH-010 | Batch request with mixed success/failure | 200 OK with success: false, failedAtIndex set, legacyResponses for successful items | TBD | Not yet tested
 
 **Acceptance Criteria:**
 
@@ -234,11 +233,11 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 | INQ-003 | Inquiry request with missing `parameters` object | 400 Bad Request with validation error for parameters | Pass |
 | INQ-004 | Inquiry request with invalid endpoint name | 404 Not Found with FormatNotFound error | Pass |
 | INQ-005 | Inquiry request with invalid query parameters | 400 Bad Request with parameter-specific validation errors | Pass |
-| INQ-006 | Inquiry request missing `AddVantage-Authorization` header | 400 Bad Request with validation error for missing header | Fail |Error: response status is 401 
-| INQ-007 | Inquiry request missing `uuid` header | 400 Bad Request with validation error for missing UUID header | Fail |Error: response status is 401 
-| INQ-008 | Inquiry request with parameters not matching format definition | 400 Bad Request with validation errors | Pass |
-| INQ-009 | Inquiry request when Format Management Service is unavailable | 502 Bad Gateway with ExternalServiceError | Fail |Returns 404
-| INQ-010 | Inquiry request when Legacy Service is unavailable | 502 Bad Gateway with ExternalServiceError | P1 |
+| INQ-006 | Inquiry request missing `AddVantage-Authorization` header | 400 Bad Request with validation error for missing header | Fail | Error: response status is 401 instead of 400 |
+| INQ-007 | Inquiry request missing `uuid` header | 400 Bad Request with validation error for missing UUID header | Fail | Error: response status is 401 instead of 400 |
+| INQ-008 | Inquiry request with parameters not matching format definition | 400 Bad Request with validation errors | Pass | Validation errors returned correctly |
+| INQ-009 | Inquiry request when Format Management Service is unavailable | 502 Bad Gateway with ExternalServiceError | Fail | Returns 404 instead of expected 502 |
+| INQ-010 | Inquiry request when Legacy Service is unavailable | 502 Bad Gateway with ExternalServiceError | TBD | Not yet tested
 | INQ-011 | Inquiry request with empty parameters object | 400 Bad Request or successful (depending on endpoint requirements) | Pass |
 
 **Acceptance Criteria:**
@@ -293,18 +292,29 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 **Test Cases:**
 
-| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Result
-|-------|-----------|-----------------|------------|------------|
-| HEALTH-001 | Health check request | 200 OK with status: "Healthy" or 503 with status: "Unhealthy" | P0 |
-| HEALTH-002 | Health check without authentication | Request succeeds (health endpoints are public) | P0 |
-| HEALTH-003 | Health check response structure validation | Response contains success, status, data, totalDurationMs, timestamp | P0 |
+| TC-ID | Test Case | Expected Result | Pass/fail | ACTUAL RESULT |
+|-------|-----------|-----------------|-----------|---------------|
+| HEALTH-001 | Health check request | 200 OK with status: "Healthy" or 503 with status: "Unhealthy" | PASS | OK (200) when main API healthy |
+| HEALTH-002 | Health check without authentication | Endpoint is public and does NOT return 401; accept 200 or 503 depending on health | CONDITIONAL FAIL | Error observed: response status is 503 (service Not Healthy) — important: should not return 401 |
+| HEALTH-003 | Health check response structure validation | Response contains success, status, data, totalDurationMs, timestamp | P0 | see structure below |
+| HEALTH-004 | totalDurationMs aggregation validation | `totalDurationMs` equals sum of all reported `durationMs` values | P0 | **New test** |
+| HEALTH-005 | main_api description present | `data.main_api.description` exists and is non-empty | P0 | **New test** |
+| HEALTH-006 | Response Content-Type and correlation header | `Content-Type` is `application/json` and `X-Correlation-Id` header present | P1 | **New test** |
 
 **Acceptance Criteria:**
 
-- Health check endpoint is accessible without authentication
+- Health check endpoint is accessible without authentication (no 401)
 - Returns 200 OK when service is healthy, 503 when unhealthy
-- Response includes status, data object with health check details, totalDurationMs, and timestamp
+- Response includes status, data object with health check details, `totalDurationMs`, and `timestamp`
+- `totalDurationMs` should equal the sum of `durationMs` values for all reported services (or be documented if aggregated differently)
+- `data.main_api.description` is present and descriptive
+- Response `Content-Type` must be `application/json` and responses include `X-Correlation-Id` header
 - Response format is consistent and well-structured
+
+**Notes / Test Hints:**
+- When asserting accessibility, check that the endpoint does **not** return 401/WWW-Authenticate. Accept either 200 or 503 as valid based on service health.
+- Use jq to assert the aggregation: `jq '. as $b | ($b.totalDurationMs) as $total | ($b.data|.[].durationMs) | add as $sum | {total:$total, sum:$sum, ok: ($total == $sum)}'`
+- Validate `X-Correlation-Id` header exists and correlates to metadata if provided in response body.
 
 **Success Response Structure:**
 
@@ -329,21 +339,28 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 **Test Cases:**
 
-| TC-ID | Test Case | Expected Result | Pass/Fail | Actual Results
-|-------|-----------|-----------------|----------|---------------|
-| READY-001 | Readiness check request | 200 OK with status: "Ready" or 503 with status: "NotReady" | P0 |
-| READY-002 | Readiness check without authentication | Request succeeds | P0 |
-| READY-003 | Readiness check when all dependencies are healthy | 200 OK with all services showing Healthy status | P0 |
-| READY-004 | Readiness check when Format Management Service is unhealthy | 503 with format_management_service showing Unhealthy status | P1 |
-| READY-005 | Readiness check when Legacy Service is unhealthy | 503 with legacy_service showing Unhealthy status | P1 |
-| READY-006 | Readiness check response structure validation | Response contains status for main_api, format_management_service, and legacy_service | P0 |
+| TC-ID | Test Case | Expected Result | Pass/fail | ACTUAL RESULT |
+|-------|-----------|-----------------|-----------|---------------|
+| READY-001 | Readiness check request | 200 OK with status: "Ready" or 503 with status: "Not Ready" | PASS | Observed 503 when legacy service unhealthy |
+| READY-002 | Readiness check without authentication | Request succeeds (endpoint is public; no 401) | PASS | OK (no 401) |
+| READY-003 | Readiness check when all dependencies are healthy | 200 OK with all services showing Healthy status | TBD | **New test** |
+| READY-004 | Readiness check when Format Management Service is unhealthy | 503 with format_management_service showing Unhealthy status | TBD | **New test** |
+| READY-005 | Readiness check when Legacy Service is unhealthy | 503 with legacy_service showing Unhealthy status | PASS | **Observed: legacy_service Not Ready — 503 returned** |
+| READY-006 | Readiness check response structure validation | Response contains status for main_api, format_management_service, and legacy_service | TBD | see structure below |
+| READY-007 | totalDurationMs aggregation validation | `totalDurationMs` equals sum of all reported `durationMs` values | TBD | **New test** |
+| READY-008 | service descriptions presence | Each reported service includes a `description` where applicable | TBD | **New test** |
 
 **Acceptance Criteria:**
 
 - Readiness check includes health status of all dependencies (Format Management Service, Legacy Service)
 - Returns 200 OK when all dependencies are ready, 503 when any dependency is not ready
-- Response includes individual health status for each dependency with duration and error details if applicable
-- Total duration includes all dependency checks
+- Response includes individual health status for each dependency with `durationMs` and error/details if applicable
+- `totalDurationMs` should equal the sum of all dependency `durationMs` values
+- Service description fields should be present to aid diagnostics
+
+**Notes / Test Hints:**
+- To reproduce legacy failure: simulate or configure Legacy Service to return unhealthy, then assert `/api/v1/health/ready` returns 503 and shows `legacy_service.status` as `Not Ready` or `Unhealthy`.
+- Use the jq aggregation snippet from 4.1 to validate `totalDurationMs`.
 
 **Success Response Structure:**
 
@@ -389,6 +406,7 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 - V2 endpoints return same structure as V1 with additional ApiVersion information
 - ApiVersion object includes Version (2.0), BuildDate, and Environment fields
+- All tests from V1 (aggregation, description presence, headers, content-type) also apply to V2
 
 ---
 
@@ -848,9 +866,9 @@ Use a test management tool to track:
 
 **Document Version**: 1.0
 
-**Last Updated**: 2025-12-17
+**Last Updated**: 2026-01-05
 
 **Author**: QA Team
 
-**Review Status**: Draft
+**Review Status**: Draft - Updated with test results
 
