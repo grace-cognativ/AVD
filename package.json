@@ -1,0 +1,39 @@
+{
+  "name": "avd-api-error-handling-tests",
+  "version": "1.0.0",
+  "description": "Automated tests for error handling in the AddVantage API",
+  "main": "error-handling-tests.js",
+  "scripts": {
+    "test": "jest --verbose",
+    "test:report": "jest --verbose --json --outputFile=test-report.json",
+    "generate:results": "node test-results-tracker.js",
+    "test:full": "npm run test:report && npm run generate:results"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "jest-html-reporter": "^3.10.0"
+  },
+  "jest": {
+    "testTimeout": 30000,
+    "testMatch": [
+      "**/error-handling-tests.js"
+    ],
+    "reporters": [
+      "default",
+      [
+        "./node_modules/jest-html-reporter",
+        {
+          "pageTitle": "AddVantage API Error Handling Test Report",
+          "outputPath": "test-report.html",
+          "includeFailureMsg": true,
+          "includeConsoleLog": true
+        }
+      ]
+    ]
+  }
+}
