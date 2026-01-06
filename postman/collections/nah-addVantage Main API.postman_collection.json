@@ -1,0 +1,1391 @@
+{
+	"info": {
+		"_postman_id": "41d7d90c-e537-4192-960e-229fdf5019a8",
+		"name": "nah-addVantage Main API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "50546132",
+		"_collection_link": "https://walter-1ebd6d78-612018.postman.co/workspace/195f1e7f-fc7d-4b93-8165-951f46b4c1b9/collection/50546132-41d7d90c-e537-4192-960e-229fdf5019a8?action=share&source=collection_link&creator=50546132"
+	},
+	"item": [
+		{
+			"name": "avd layer api",
+			"item": [
+				{
+					"name": "auth",
+					"item": [
+						{
+							"name": "accessToken",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Parse the JSON response and extract the access token",
+											"const jsonData = pm.response.json();",
+											"",
+											"// Check if the response contains an access token",
+											"if (jsonData && jsonData.accessToken) {",
+											"    // Try to set in environment first, fallback to collection variable",
+											"    if (pm.environment.name) {",
+											"        pm.environment.set(\"accessToken\", jsonData.accessToken);",
+											"        console.log(\"Access token saved to environment variable 'accessToken'\");",
+											"    } else {",
+											"        pm.collectionVariables.set(\"accessToken\", jsonData.accessToken);",
+											"        console.log(\"Access token saved to collection variable 'accessToken' (no active environment)\");",
+											"    }",
+											"    ",
+											"    pm.test(\"Access token successfully extracted and stored\", function () {",
+											"        pm.expect(jsonData.accessToken).to.be.a(\"string\").and.not.be.empty;",
+											"    });",
+											"} else if (jsonData && jsonData.access_token) {",
+											"    // Handle alternative response format (snake_case)",
+											"    if (pm.environment.name) {",
+											"        pm.environment.set(\"accessToken\", jsonData.access_token);",
+											"        console.log(\"Access token saved to environment variable 'accessToken'\");",
+											"    } else {",
+											"        pm.collectionVariables.set(\"accessToken\", jsonData.access_token);",
+											"        console.log(\"Access token saved to collection variable 'accessToken' (no active environment)\");",
+											"    }",
+											"    ",
+											"    pm.test(\"Access token successfully extracted and stored\", function () {",
+											"        pm.expect(jsonData.access_token).to.be.a(\"string\").and.not.be.empty;",
+											"    });",
+											"} else if (jsonData && jsonData.token) {",
+											"    // Handle 'token' field format",
+											"    if (pm.environment.name) {",
+											"        pm.environment.set(\"accessToken\", jsonData.token);",
+											"        console.log(\"Access token saved to environment variable 'accessToken'\");",
+											"    } else {",
+											"        pm.collectionVariables.set(\"accessToken\", jsonData.token);",
+											"        console.log(\"Access token saved to collection variable 'accessToken' (no active environment)\");",
+											"    }",
+											"    ",
+											"    pm.test(\"Access token successfully extracted and stored\", function () {",
+											"        pm.expect(jsonData.token).to.be.a(\"string\").and.not.be.empty;",
+											"    });",
+											"} else {",
+											"    pm.test(\"Access token found in response\", function () {",
+											"        pm.expect.fail(\"No access token found in response. Expected 'accessToken', 'access_token', or 'token' field.\");",
+											"    });",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "grant_type",
+											"value": "authorization_code_with_pkce",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "https://nah-idp-dev.cognativ.com/openid/token",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "https://nah-idp-dev.cognativ.com/openid/authorize",
+											"type": "string"
+										},
+										{
+											"key": "useBrowser",
+											"value": true,
+											"type": "boolean"
+										},
+										{
+											"key": "scope",
+											"value": "openid email profile read write",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "O7AsoiMFeSx05AHIPVa68kR430PBiW5_HKQOUHboF4E",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "nah_dev_api",
+											"type": "string"
+										},
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "stp operations",
+					"item": [
+						{
+							"name": "happy path",
+							"item": [
+								{
+									"name": "STP Batch",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"if (!pm.environment.get('uuid')) {",
+													"  pm.environment.set('uuid', pm.variables.replaceIn('{{$guid}}'));",
+													"}"
+												],
+												"type": "text/javascript",
+												"packages": {},
+												"requests": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"/**",
+													" * STP Batch API – Contract-Level Tests",
+													" * Validates envelope, batch semantics, and partial failure handling.",
+													" */",
+													"",
+													"pm.test('Status code is 200', () => {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"let json;",
+													"pm.test('Response body is valid JSON', () => {",
+													"  json = pm.response.json();",
+													"  pm.expect(json).to.be.an('object');",
+													"});",
+													"",
+													"/**",
+													" * Envelope-level assertions",
+													" */",
+													"",
+													"pm.test('Response contains top-level success flag', () => {",
+													"  pm.expect(json).to.have.property('success');",
+													"  pm.expect(json.success).to.be.a('boolean');",
+													"});",
+													"",
+													"pm.test('Response contains data object', () => {",
+													"  pm.expect(json).to.have.property('data');",
+													"  pm.expect(json.data).to.be.an('object');",
+													"});",
+													"",
+													"/**",
+													" * Batch identity & counts",
+													" */",
+													"",
+													"pm.test('Batch ID is returned', () => {",
+													"  pm.expect(json.data).to.have.property('batchId');",
+													"  pm.expect(json.data.batchId).to.be.a('string').and.not.empty;",
+													"});",
+													"",
+													"pm.test('Item counts are valid numbers', () => {",
+													"  pm.expect(json.data).to.have.property('totalItems');",
+													"  pm.expect(json.data).to.have.property('processedItems');",
+													"",
+													"  pm.expect(json.data.totalItems).to.be.a('number').and.to.be.at.least(0);",
+													"  pm.expect(json.data.processedItems).to.be.a('number').and.to.be.at.least(0);",
+													"});",
+													"",
+													"/**",
+													" * Business-level batch result",
+													" * NOTE: data.success reflects batch processing outcome, not HTTP success",
+													" */",
+													"",
+													"pm.test('Batch success flag is present and boolean', () => {",
+													"  pm.expect(json.data).to.have.property('success');",
+													"  pm.expect(json.data.success).to.be.a('boolean');",
+													"});",
+													"",
+													"/**",
+													" * Legacy responses consistency (only when items were processed)",
+													" */",
+													"",
+													"pm.test('Legacy responses align with processed items', () => {",
+													"  pm.expect(json.data).to.have.property('legacyResponses');",
+													"  pm.expect(json.data.legacyResponses).to.be.an('array');",
+													"",
+													"  if (json.data.processedItems > 0) {",
+													"    pm.expect(json.data.legacyResponses.length)",
+													"      .to.eql(json.data.processedItems);",
+													"  }",
+													"});",
+													"",
+													"/**",
+													" * Partial failure / validation handling",
+													" */",
+													"",
+													"pm.test('Validation errors are present when batch fails', () => {",
+													"  if (json.data.success === false) {",
+													"    pm.expect(json.data).to.have.property('failedAtIndex');",
+													"    pm.expect(json.data.failedAtIndex).to.be.a('number');",
+													"",
+													"    pm.expect(json.data).to.have.property('validationErrors');",
+													"    pm.expect(json.data.validationErrors).to.be.an('object');",
+													"    pm.expect(Object.keys(json.data.validationErrors).length)",
+													"      .to.be.greaterThan(0);",
+													"  }",
+													"});",
+													"",
+													"/**",
+													" * Metadata (optional, not guaranteed)",
+													" */",
+													"",
+													"pm.test('Metadata is valid if present', () => {",
+													"  if (json.metadata) {",
+													"    pm.expect(json.metadata).to.be.an('object');",
+													"",
+													"    if (json.metadata.ProcessedAt) {",
+													"      const processedAt = new Date(json.metadata.ProcessedAt);",
+													"      pm.expect(processedAt.toString()).to.not.eql('Invalid Date');",
+													"    }",
+													"  }",
+													"});",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {},
+												"requests": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "AddVantage-Authorization",
+												"value": "{{addVantageAuth}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "uuid",
+												"value": "{{uuid}}"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"batchId\": \"BATCH-{{$timestamp}}\",\n  \"items\": [\n    {\n      \"operation\": \"CustomerPayment\",\n      \"fields\": {\n        \"function\": \"PTI\",\n        \"transaction_type\": \"ERT\",\n        \"account_number\": \"A4345333\",\n        \"processing_code\": \"A\",\n        \"reference_code\": \"3FER\"\n      }\n    },\n    {\n      \"operation\": \"CustomerPayment\",\n      \"fields\": {\n        \"function\": \"PTI\",\n        \"transaction_type\": \"ERT\",\n        \"account_number\": \"A4345334\",\n        \"processing_code\": \"B\",\n        \"reference_code\": \"4FER\"\n      }\n    }\n  ]\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/stp/batch",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"stp",
+												"batch"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "STP Single",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"if (!pm.environment.get('uuid')) {",
+													"  pm.environment.set('uuid', pm.variables.replaceIn('{{$guid}}'));",
+													"}"
+												],
+												"type": "text/javascript",
+												"packages": {},
+												"requests": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"/**",
+													" * STP API – Contract-Level Tests",
+													" * These tests validate the response envelope and stable invariants,",
+													" * not Swagger examples or legacy-specific fields.",
+													" */",
+													"",
+													"pm.test('Status code is 200', () => {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"let json;",
+													"pm.test('Response body is valid JSON', () => {",
+													"  json = pm.response.json();",
+													"  pm.expect(json).to.be.an('object');",
+													"});",
+													"",
+													"pm.test('Response indicates success', () => {",
+													"  pm.expect(json).to.have.property('success', true);",
+													"});",
+													"",
+													"pm.test('Response contains a data object', () => {",
+													"  pm.expect(json).to.have.property('data');",
+													"  pm.expect(json.data).to.be.an('object');",
+													"  pm.expect(Object.keys(json.data).length).to.be.greaterThan(0);",
+													"});",
+													"",
+													"pm.test('Response contains metadata', () => {",
+													"  pm.expect(json).to.have.property('metadata');",
+													"  pm.expect(json.metadata).to.be.an('object');",
+													"});",
+													"",
+													"pm.test('No error object is present on success', () => {",
+													"  pm.expect(json).to.not.have.property('error');",
+													"});",
+													"",
+													"/**",
+													" * Semantic validations (loose but meaningful)",
+													" */",
+													"",
+													"pm.test('Response includes a processing status', () => {",
+													"  pm.expect(json.data).to.have.property('status');",
+													"  pm.expect(json.data.status).to.be.a('string');",
+													"});",
+													"",
+													"pm.test('Response includes a processing timestamp', () => {",
+													"  pm.expect(json.metadata).to.have.property('ProcessedAt');",
+													"  const processedAt = new Date(json.metadata.ProcessedAt);",
+													"  pm.expect(processedAt.toString()).to.not.eql('Invalid Date');",
+													"});",
+													"",
+													"/**",
+													" * Correlation / traceability check",
+													" * Accepts different possible identifier fields",
+													" */",
+													"pm.test('Response includes a correlation identifier', () => {",
+													"  const possibleIds = [",
+													"    json.data.id,",
+													"    json.data.transactionId,",
+													"    json.data.reference,",
+													"    json.data.timestamp",
+													"  ];",
+													"",
+													"  pm.expect(possibleIds.some(id => id !== undefined)).to.eql(true);",
+													"});",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {},
+												"requests": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "AddVantage-Authorization",
+												"value": "{{addVantageAuth}}"
+											},
+											{
+												"key": "uuid",
+												"value": "{{uuid}}"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"operation\": \"CustomerPayment\",\n  \"fields\": {\n    \"function\": \"PTI\",\n    \"transaction_type\": \"ERT\",\n    \"external_source_id\": \"Google\",\n    \"account_number\": \"A4345333\",\n    \"processing_code\": \"A\",\n    \"branch_id\": \"Bank\",\n    \"terminal_id\": \"TTY90\",\n    \"bank_code\": 32432,\n    \"merchant_id\": \"FEH45\",\n    \"transaction_flag\": \"M\",\n    \"reference_code\": \"3FER\"\n  }\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/stp",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"stp"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "negative tests",
+							"item": [
+								{
+									"name": "STP Batch - missing auth header",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"if (!pm.environment.get('uuid')) {",
+													"  pm.environment.set('uuid', pm.variables.replaceIn('{{$guid}}'));",
+													"}"
+												],
+												"type": "text/javascript",
+												"packages": {},
+												"requests": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"/**",
+													" * Negative Test: Missing AddVantage-Authorization header for /stp/batch",
+													" * Validates response envelope, error object, and field-level errors.",
+													" */",
+													"",
+													"let jsonData;",
+													"",
+													"// --- Basic JSON check ---",
+													"pm.test(\"Response body is valid JSON object\", () => {",
+													"    jsonData = pm.response.json();",
+													"    pm.expect(jsonData).to.be.an(\"object\");",
+													"});",
+													"",
+													"// --- Envelope-level assertions ---",
+													"pm.test(\"Response has 'success' flag set to false\", () => {",
+													"    pm.expect(jsonData).to.have.property(\"success\", false);",
+													"});",
+													"",
+													"pm.test(\"Response contains an 'error' object\", () => {",
+													"    pm.expect(jsonData).to.have.property(\"error\").that.is.an(\"object\");",
+													"});",
+													"",
+													"// --- Error object structure ---",
+													"pm.test(\"Error object has 'code' and 'message'\", () => {",
+													"    const err = jsonData.error;",
+													"",
+													"    pm.expect(err).to.have.property(\"code\", \"VALIDATION_ERROR\");",
+													"    pm.expect(err).to.have.property(\"message\").that.is.a(\"string\").and.to.have.length.greaterThan(0);",
+													"});",
+													"",
+													"// --- Field-level errors ---",
+													"pm.test(\"Error object has 'errors' map\", () => {",
+													"    const err = jsonData.error;",
+													"    pm.expect(err).to.have.property(\"errors\").that.is.an(\"object\");",
+													"});",
+													"",
+													"pm.test(\"Missing AddVantage-Authorization header is reported\", () => {",
+													"    const fieldErrors = jsonData.error.errors;",
+													"",
+													"    pm.expect(fieldErrors)",
+													"      .to.have.property(\"AddVantage-Authorization\")",
+													"      .that.is.an(\"array\").and.to.have.length.greaterThan(0);",
+													"",
+													"    // Validate each error message is a non-empty string",
+													"    fieldErrors[\"AddVantage-Authorization\"].forEach((msg, index) => {",
+													"        pm.expect(msg, `AddVantage-Authorization error message at index ${index}`)",
+													"          .to.be.a(\"string\")",
+													"          .and.to.have.length.greaterThan(0);",
+													"    });",
+													"});",
+													"",
+													"// --- HTTP status code check ---",
+													"pm.test(\"HTTP status code is 400 for missing auth header\", () => {",
+													"    pm.expect(pm.response.code).to.equal(400);",
+													"});",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {},
+												"requests": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "uuid",
+												"value": "{{uuid}}"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"batchId\": \"BATCH-{{$timestamp}}\",\n  \"items\": [\n    {\n      \"operation\": \"CustomerPayment\",\n      \"fields\": {\n        \"function\": \"PTI\",\n        \"transaction_type\": \"ERT\",\n        \"account_number\": \"A4345333\",\n        \"processing_code\": \"A\",\n        \"reference_code\": \"3FER\"\n      }\n    },\n    {\n      \"operation\": \"CustomerPayment\",\n      \"fields\": {\n        \"function\": \"PTI\",\n        \"transaction_type\": \"ERT\",\n        \"account_number\": \"A4345334\",\n        \"processing_code\": \"B\",\n        \"reference_code\": \"4FER\"\n      }\n    }\n  ]\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/stp/batch",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"stp",
+												"batch"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "STP Batch - missing uuid header",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"if (!pm.environment.get('uuid')) {",
+													"  pm.environment.set('uuid', pm.variables.replaceIn('{{$guid}}'));",
+													"}"
+												],
+												"type": "text/javascript",
+												"packages": {},
+												"requests": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"/**",
+													" * Negative Test: Missing uuid header",
+													" * Validates response envelope, error object, and field-level errors",
+													" */",
+													"",
+													"let jsonData;",
+													"",
+													"// --- Basic JSON check ---",
+													"pm.test(\"Response body is valid JSON object\", () => {",
+													"    jsonData = pm.response.json();",
+													"    pm.expect(jsonData).to.be.an(\"object\");",
+													"});",
+													"",
+													"// --- Envelope-level assertions ---",
+													"pm.test(\"Response has 'success' flag set to false\", () => {",
+													"    pm.expect(jsonData).to.have.property(\"success\", false);",
+													"});",
+													"",
+													"pm.test(\"Response contains an 'error' object\", () => {",
+													"    pm.expect(jsonData).to.have.property(\"error\").that.is.an(\"object\");",
+													"});",
+													"",
+													"// --- Error object structure ---",
+													"pm.test(\"Error object has 'code' and 'message'\", () => {",
+													"    const err = jsonData.error;",
+													"",
+													"    pm.expect(err).to.have.property(\"code\", \"VALIDATION_ERROR\");",
+													"    pm.expect(err).to.have.property(\"message\")",
+													"        .that.is.a(\"string\").and.to.have.length.greaterThan(0);",
+													"});",
+													"",
+													"// --- Field-level errors ---",
+													"pm.test(\"Error object contains 'errors' map\", () => {",
+													"    const err = jsonData.error;",
+													"    pm.expect(err).to.have.property(\"errors\").that.is.an(\"object\");",
+													"});",
+													"",
+													"pm.test(\"Missing uuid header is reported\", () => {",
+													"    const fieldErrors = jsonData.error.errors;",
+													"",
+													"    pm.expect(fieldErrors)",
+													"        .to.have.property(\"uuid\")",
+													"        .that.is.an(\"array\").and.to.have.length.greaterThan(0);",
+													"",
+													"    // Validate each error message is a non-empty string",
+													"    fieldErrors[\"uuid\"].forEach((msg, index) => {",
+													"        pm.expect(msg, `uuid error message at index ${index}`)",
+													"            .to.be.a(\"string\")",
+													"            .and.to.have.length.greaterThan(0);",
+													"    });",
+													"});",
+													"",
+													"// --- HTTP status code check ---",
+													"pm.test(\"HTTP status code is 400 for missing auth header\", () => {",
+													"    pm.expect(pm.response.code).to.equal(400);",
+													"});",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {},
+												"requests": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "AddVantage-Authorization",
+												"value": "{{addVantageAuth}}"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"batchId\": \"BATCH-{{$timestamp}}\",\n  \"items\": [\n    {\n      \"operation\": \"CustomerPayment\",\n      \"fields\": {\n        \"function\": \"PTI\",\n        \"transaction_type\": \"ERT\",\n        \"account_number\": \"A4345333\",\n        \"processing_code\": \"A\",\n        \"reference_code\": \"3FER\"\n      }\n    },\n    {\n      \"operation\": \"CustomerPayment\",\n      \"fields\": {\n        \"function\": \"PTI\",\n        \"transaction_type\": \"ERT\",\n        \"account_number\": \"A4345334\",\n        \"processing_code\": \"B\",\n        \"reference_code\": \"4FER\"\n      }\n    }\n  ]\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/stp/batch",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"stp",
+												"batch"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "STP Single -missing auth header",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"if (!pm.environment.get('uuid')) {",
+													"  pm.environment.set('uuid', pm.variables.replaceIn('{{$guid}}'));",
+													"}"
+												],
+												"type": "text/javascript",
+												"packages": {},
+												"requests": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"/**",
+													" * Negative Test: Missing AddVantage-Authorization header",
+													" * Validates the response envelope, error object, and field-level validation",
+													" */",
+													"",
+													"let jsonData;",
+													"",
+													"// --- Basic JSON check ---",
+													"pm.test(\"Response body is valid JSON object\", () => {",
+													"    jsonData = pm.response.json();",
+													"    pm.expect(jsonData).to.be.an(\"object\");",
+													"});",
+													"",
+													"// --- Envelope-level checks ---",
+													"pm.test(\"Response has 'success' flag set to false\", () => {",
+													"    pm.expect(jsonData).to.have.property(\"success\", false);",
+													"});",
+													"",
+													"pm.test(\"Response contains an 'error' object\", () => {",
+													"    pm.expect(jsonData).to.have.property(\"error\").that.is.an(\"object\");",
+													"});",
+													"",
+													"// --- Error object structure ---",
+													"pm.test(\"Error object has 'code' and 'message'\", () => {",
+													"    const err = jsonData.error;",
+													"",
+													"    pm.expect(err).to.have.property(\"code\", \"VALIDATION_ERROR\");",
+													"    pm.expect(err).to.have.property(\"message\").that.is.a(\"string\").and.to.have.length.greaterThan(0);",
+													"});",
+													"",
+													"// --- Field-level errors ---",
+													"pm.test(\"Error object has 'errors' map\", () => {",
+													"    const err = jsonData.error;",
+													"    pm.expect(err).to.have.property(\"errors\").that.is.an(\"object\");",
+													"});",
+													"",
+													"pm.test(\"Missing AddVantage-Authorization header is reported\", () => {",
+													"    const fieldErrors = jsonData.error.errors;",
+													"",
+													"    pm.expect(fieldErrors).to.have.property(\"AddVantage-Authorization\").that.is.an(\"array\").and.to.have.length.greaterThan(0);",
+													"",
+													"    // Validate each error message is a non-empty string",
+													"    fieldErrors[\"AddVantage-Authorization\"].forEach((msg, index) => {",
+													"        pm.expect(msg, `Error message at index ${index}`).to.be.a(\"string\").and.to.have.length.greaterThan(0);",
+													"    });",
+													"});",
+													"",
+													"// --- Status code check ---",
+													"pm.test(\"HTTP status code is 400 for missing auth header\", () => {",
+													"    pm.expect(pm.response.code).to.equal(400);",
+													"});",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {},
+												"requests": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "uuid",
+												"value": "{{uuid}}"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"operation\": \"CustomerPayment\",\n  \"fields\": {\n    \"function\": \"PTI\",\n    \"transaction_type\": \"ERT\",\n    \"external_source_id\": \"Google\",\n    \"account_number\": \"A4345333\",\n    \"processing_code\": \"A\",\n    \"branch_id\": \"Bank\",\n    \"terminal_id\": \"TTY90\",\n    \"bank_code\": 32432,\n    \"merchant_id\": \"FEH45\",\n    \"transaction_flag\": \"M\",\n    \"reference_code\": \"3FER\"\n  }\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/stp",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"stp"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "STP Single -missing uuid header",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"if (!pm.environment.get('uuid')) {",
+													"  pm.environment.set('uuid', pm.variables.replaceIn('{{$guid}}'));",
+													"}"
+												],
+												"type": "text/javascript",
+												"packages": {},
+												"requests": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"/**",
+													" * Negative Test: Missing uuid header",
+													" * Validates response envelope, error object, and field-level errors",
+													" */",
+													"",
+													"let jsonData;",
+													"",
+													"// --- Basic JSON check ---",
+													"pm.test(\"Response body is valid JSON object\", () => {",
+													"    jsonData = pm.response.json();",
+													"    pm.expect(jsonData).to.be.an(\"object\");",
+													"});",
+													"",
+													"// --- Envelope-level assertions ---",
+													"pm.test(\"Response has 'success' flag set to false\", () => {",
+													"    pm.expect(jsonData).to.have.property(\"success\", false);",
+													"});",
+													"",
+													"pm.test(\"Response contains an 'error' object\", () => {",
+													"    pm.expect(jsonData).to.have.property(\"error\").that.is.an(\"object\");",
+													"});",
+													"",
+													"// --- Error object structure ---",
+													"pm.test(\"Error object has 'code' and 'message'\", () => {",
+													"    const err = jsonData.error;",
+													"    pm.expect(err).to.have.property(\"code\", \"VALIDATION_ERROR\");",
+													"    pm.expect(err).to.have.property(\"message\")",
+													"        .that.is.a(\"string\").and.to.have.length.greaterThan(0);",
+													"});",
+													"",
+													"// --- Field-level errors ---",
+													"pm.test(\"Error object contains 'errors' map\", () => {",
+													"    const err = jsonData.error;",
+													"    pm.expect(err).to.have.property(\"errors\").that.is.an(\"object\");",
+													"});",
+													"",
+													"pm.test(\"Missing uuid header is reported in errors\", () => {",
+													"    const fieldErrors = jsonData.error.errors;",
+													"",
+													"    pm.expect(fieldErrors)",
+													"      .to.have.property(\"uuid\")",
+													"      .that.is.an(\"array\").and.to.have.length.greaterThan(0);",
+													"",
+													"    fieldErrors[\"uuid\"].forEach((msg, index) => {",
+													"        pm.expect(msg, `uuid error message at index ${index}`)",
+													"          .to.be.a(\"string\").and.to.have.length.greaterThan(0);",
+													"    });",
+													"});",
+													"",
+													"// --- Status code check ---",
+													"pm.test(\"HTTP status code is 400 for missing auth header\", () => {",
+													"    pm.expect(pm.response.code).to.equal(400);",
+													"});",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {},
+												"requests": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "AddVantage-Authorization",
+												"value": "{{addVantageAuth}}"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"operation\": \"CustomerPayment\",\n  \"fields\": {\n    \"function\": \"PTI\",\n    \"transaction_type\": \"ERT\",\n    \"external_source_id\": \"Google\",\n    \"account_number\": \"A4345333\",\n    \"processing_code\": \"A\",\n    \"branch_id\": \"Bank\",\n    \"terminal_id\": \"TTY90\",\n    \"bank_code\": 32432,\n    \"merchant_id\": \"FEH45\",\n    \"transaction_flag\": \"M\",\n    \"reference_code\": \"3FER\"\n  }\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/stp",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"stp"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						}
+					],
+					"auth": {
+						"type": "bearer",
+						"bearer": [
+							{
+								"key": "token",
+								"value": "{{access_token}}",
+								"type": "string"
+							}
+						]
+					},
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "health",
+					"item": [
+						{
+							"name": "health",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"/**",
+											" * Tests for GET /api/v1/Health",
+											" */",
+											"",
+											"let jsonData;",
+											"",
+											"// --- Basic JSON check ---",
+											"pm.test(\"Response body is valid JSON object\", () => {",
+											"    jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.be.an(\"object\");",
+											"});",
+											"",
+											"// --- Status code ---",
+											"pm.test(\"Status code is 200\", () => {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"// --- Envelope-level assertions ---",
+											"pm.test(\"Response has 'success' flag set to true\", () => {",
+											"    pm.expect(jsonData).to.have.property(\"success\", true);",
+											"});",
+											"",
+											"pm.test(\"Response has 'status', 'totalDurationMs', and 'timestamp'\", () => {",
+											"    pm.expect(jsonData).to.have.property(\"status\").that.is.a(\"string\");",
+											"    pm.expect(jsonData).to.have.property(\"totalDurationMs\").that.is.a(\"number\");",
+											"    pm.expect(jsonData).to.have.property(\"timestamp\").that.is.a(\"string\");",
+											"});",
+											"",
+											"// --- Data object assertions ---",
+											"pm.test(\"Response has 'data' object with main_api info\", () => {",
+											"    pm.expect(jsonData).to.have.property(\"data\").that.is.an(\"object\");",
+											"    pm.expect(jsonData.data).to.have.property(\"main_api\").that.is.an(\"object\");",
+											"});",
+											"",
+											"pm.test(\"main_api object has 'status' and 'durationMs'\", () => {",
+											"    const mainApi = jsonData.data.main_api;",
+											"    pm.expect(mainApi).to.have.property(\"status\").that.is.a(\"string\");",
+											"    pm.expect(mainApi).to.have.property(\"durationMs\").that.is.a(\"number\");",
+											"});",
+											"",
+											"pm.test(\"Optional fields like description and nested data may exist\", () => {",
+											"    const mainApi = jsonData.data.main_api;",
+											"",
+											"    // Only assert if present, don't fail if missing",
+											"    if (mainApi.hasOwnProperty(\"description\")) {",
+											"        pm.expect(mainApi.description).to.be.a(\"string\");",
+											"    }",
+											"    if (mainApi.hasOwnProperty(\"data\")) {",
+											"        pm.expect(mainApi.data).to.satisfy(d => d === null || typeof d === \"object\");",
+											"    }",
+											"});",
+											"",
+											"// --- Basic health check ---",
+											"pm.test(\"API reports Healthy status\", () => {",
+											"    pm.expect(jsonData.status).to.match(/Healthy|Degraded|Unhealthy/);",
+											"    pm.expect(jsonData.data.main_api.status).to.match(/Healthy|Degraded|Unhealthy/);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "AddVantage-Authorization",
+										"value": "{{addVantageAuth}}"
+									},
+									{
+										"key": "uuid",
+										"value": "{{uuid}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/Health",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"Health"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "health ready",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"/**",
+											" * Tests for GET /api/v1/Health/ready",
+											" */",
+											"",
+											"let jsonData;",
+											"",
+											"// --- Basic JSON check ---",
+											"pm.test(\"Response body is valid JSON object\", () => {",
+											"    jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.be.an(\"object\");",
+											"});",
+											"",
+											"// --- Status code ---",
+											"pm.test(\"Status code is 200\", () => {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"// --- Envelope-level assertions ---",
+											"pm.test(\"Response has 'success' flag set to true\", () => {",
+											"    pm.expect(jsonData).to.have.property(\"success\", true);",
+											"});",
+											"",
+											"pm.test(\"Response has 'status', 'totalDurationMs', and 'timestamp'\", () => {",
+											"    pm.expect(jsonData).to.have.property(\"status\").that.is.a(\"string\");",
+											"    pm.expect(jsonData).to.have.property(\"totalDurationMs\").that.is.a(\"number\");",
+											"    pm.expect(jsonData).to.have.property(\"timestamp\").that.is.a(\"string\");",
+											"});",
+											"",
+											"// --- Data object assertions ---",
+											"pm.test(\"Response has 'data' object with expected services\", () => {",
+											"    pm.expect(jsonData).to.have.property(\"data\").that.is.an(\"object\");",
+											"",
+											"    // Known services we expect in the response",
+											"    const expectedServices = [",
+											"        \"main_api\",",
+											"        \"format_management_service\",",
+											"        \"legacy_service\"",
+											"    ];",
+											"",
+											"    expectedServices.forEach(service => {",
+											"        pm.expect(jsonData.data, `Response should have service '${service}'`).to.have.property(service);",
+											"        pm.expect(jsonData.data[service]).to.be.an(\"object\");",
+											"    });",
+											"});",
+											"",
+											"// --- Individual service checks ---",
+											"pm.test(\"Each service object has 'status' and 'durationMs'\", () => {",
+											"    const services = jsonData.data;",
+											"    Object.keys(services).forEach(serviceName => {",
+											"        const service = services[serviceName];",
+											"        pm.expect(service).to.have.property(\"status\").that.is.a(\"string\");",
+											"        pm.expect(service).to.have.property(\"durationMs\").that.is.a(\"number\");",
+											"",
+											"        // Optional fields",
+											"        if (service.hasOwnProperty(\"description\")) {",
+											"            pm.expect(service.description).to.be.a(\"string\");",
+											"        }",
+											"        if (service.hasOwnProperty(\"data\")) {",
+											"            pm.expect(service.data).to.satisfy(d => d === null || typeof d === \"object\");",
+											"        }",
+											"    });",
+											"});",
+											"",
+											"// --- Readiness / health statuses ---",
+											"pm.test(\"Overall status and individual service statuses are valid\", () => {",
+											"    const overallStatus = jsonData.status;",
+											"    pm.expect(overallStatus).to.match(/Ready|NotReady/);",
+											"",
+											"    Object.values(jsonData.data).forEach(service => {",
+											"        pm.expect(service.status).to.match(/Healthy|Degraded|Unhealthy/);",
+											"    });",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/Health/ready",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"Health",
+										"ready"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Inquiry Operations",
+					"item": [
+						{
+							"name": "inquiry",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"if (!pm.environment.get('uuid')) {",
+											"  pm.environment.set('uuid', pm.variables.replaceIn('{{$guid}}'));",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"/**",
+											" * Tests for POST /api/v1/inquiry",
+											" */",
+											"",
+											"let jsonData;",
+											"",
+											"// --- Basic JSON check ---",
+											"pm.test(\"Response body is valid JSON object\", () => {",
+											"    jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.be.an(\"object\");",
+											"});",
+											"",
+											"// --- Status code ---",
+											"pm.test(\"Status code is 200\", () => {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"// --- Envelope-level assertions ---",
+											"pm.test(\"Response has 'success' flag set to true\", () => {",
+											"    pm.expect(jsonData).to.have.property(\"success\", true);",
+											"});",
+											"",
+											"pm.test(\"Response has 'data' and 'metadata' objects\", () => {",
+											"    pm.expect(jsonData).to.have.property(\"data\").that.is.an(\"object\");",
+											"    pm.expect(jsonData).to.have.property(\"metadata\").that.is.an(\"object\");",
+											"});",
+											"",
+											"// --- Metadata checks ---",
+											"pm.test(\"Metadata contains 'ProcessedAt'\", () => {",
+											"    pm.expect(jsonData.metadata).to.have.property(\"ProcessedAt\").that.is.a(\"string\");",
+											"});",
+											"",
+											"// --- Data field checks ---",
+											"pm.test(\"Data contains expected keys\", () => {",
+											"    const expectedKeys = [",
+											"        \"factor.valid\",",
+											"        \"price.source\",",
+											"        \"account.number\",",
+											"        \"account.internal\",",
+											"        \"security.typeCode\",",
+											"        \"security.subclassCode\"",
+											"    ];",
+											"",
+											"    expectedKeys.forEach(key => {",
+											"        pm.expect(jsonData.data, `Data should have key '${key}'`).to.have.property(key);",
+											"        pm.expect(jsonData.data[key]).to.be.a(\"string\").and.not.empty;",
+											"    });",
+											"});",
+											"",
+											"// --- Optional: Validate numeric values if applicable ---",
+											"pm.test(\"Numeric fields in data are strings representing numbers\", () => {",
+											"    const numericKeys = [\"factor.valid\", \"price.source\", \"security.typeCode\", \"security.subclassCode\"];",
+											"    numericKeys.forEach(key => {",
+											"        const value = jsonData.data[key];",
+											"        pm.expect(value).to.match(/^\\d+$/);",
+											"    });",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "AddVantage-Authorization",
+										"value": "{{addVantageAuth}}"
+									},
+									{
+										"key": "uuid",
+										"value": "{{uuid}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"endpoint\": \"HoldingGroupTenantLoginSearch\",\n  \"parameters\": {\n    \"loginId\": \"RIA100\",\n    \"tenantId\": \"RIAF\",\n    \"searchCrit\": \"account\",\n    \"searchValue\": \"submitted\"\n  }\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/inquiry",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"inquiry"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					"const accessToken = pm.environment.get(\"access_token\");",
+					"const expiresAt = pm.environment.get(\"token_expires_at\");",
+					"",
+					"if (!accessToken || !expiresAt || Date.now() > Number(expiresAt)) {",
+					"",
+					"    const clientId = pm.environment.get(\"client_id\");",
+					"    const clientSecret = pm.environment.get(\"client_secret\");",
+					"    const refreshToken = pm.environment.get(\"refresh_token\");",
+					"",
+					"    const basicAuth = btoa(`${clientId}:${clientSecret}`);",
+					"",
+					"    pm.sendRequest({",
+					"        url: pm.environment.get(\"token_url\"),",
+					"        method: \"POST\",",
+					"        header: {",
+					"            \"Authorization\": `Basic ${basicAuth}`,",
+					"            \"Content-Type\": \"application/x-www-form-urlencoded\"",
+					"        },",
+					"        body: {",
+					"            mode: \"urlencoded\",",
+					"            urlencoded: [",
+					"                { key: \"grant_type\", value: \"refresh_token\" },",
+					"                { key: \"refresh_token\", value: refreshToken }",
+					"            ]",
+					"        }",
+					"    }, function (err, res) {",
+					"        if (err) {",
+					"            console.error(\"Token refresh failed\", err);",
+					"            return;",
+					"        }",
+					"",
+					"        const json = res.json();",
+					"",
+					"        pm.environment.set(\"access_token\", json.access_token);",
+					"",
+					"        // Corio may rotate refresh tokens",
+					"        if (json.refresh_token) {",
+					"            pm.environment.set(\"refresh_token\", json.refresh_token);",
+					"        }",
+					"",
+					"        pm.environment.set(",
+					"            \"token_expires_at\",",
+					"            Date.now() + (json.expires_in * 1000)",
+					"        );",
+					"    });",
+					"}",
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": ""
+		},
+		{
+			"key": "AddVantage-Authorization",
+			"value": ""
+		},
+		{
+			"key": "uuid",
+			"value": ""
+		},
+		{
+			"key": "addVantageAuth",
+			"value": ""
+		},
+		{
+			"key": "baseUrl",
+			"value": ""
+		},
+		{
+			"key": "accessToken",
+			"value": ""
+		},
+		{
+			"key": "access_token",
+			"value": ""
+		}
+	]
+}
