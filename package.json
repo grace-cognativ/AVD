@@ -1,13 +1,21 @@
 {
-  "name": "avd-api-error-handling-tests",
+  "name": "avd-api-tests",
   "version": "1.0.0",
-  "description": "Automated tests for error handling in the AddVantage API",
-  "main": "error-handling-tests.js",
+  "description": "Automated tests for the AddVantage API (authentication, STP, inquiry, health checks, rate limiting, headers, error handling, data validation)",
+  "main": "index.js",
   "scripts": {
     "test": "jest --verbose",
     "test:report": "jest --verbose --json --outputFile=test-report.json",
     "generate:results": "node test-results-tracker.js",
-    "test:full": "npm run test:report && npm run generate:results"
+    "test:full": "npm run test:report && npm run generate:results",
+    "test:auth": "jest --verbose authentication-tests.js",
+    "test:stp": "jest --verbose stp-operations-tests.js",
+    "test:inquiry": "jest --verbose inquiry-operations-tests.js",
+    "test:health": "jest --verbose health-check-tests.js",
+    "test:rate": "jest --verbose rate-limiting-tests.js",
+    "test:headers": "jest --verbose headers-tests.js",
+    "test:error": "jest --verbose error-handling-tests.js",
+    "test:validation": "jest --verbose data-validation-tests.js"
   },
   "dependencies": {
     "axios": "^1.6.0",
@@ -21,14 +29,21 @@
   "jest": {
     "testTimeout": 30000,
     "testMatch": [
-      "**/error-handling-tests.js"
+      "**/authentication-tests.js",
+      "**/stp-operations-tests.js",
+      "**/inquiry-operations-tests.js",
+      "**/health-check-tests.js",
+      "**/rate-limiting-tests.js",
+      "**/headers-tests.js",
+      "**/error-handling-tests.js",
+      "**/data-validation-tests.js"
     ],
     "reporters": [
       "default",
       [
         "./node_modules/jest-html-reporter",
         {
-          "pageTitle": "AddVantage API Error Handling Test Report",
+          "pageTitle": "AddVantage API Test Report",
           "outputPath": "test-report.html",
           "includeFailureMsg": true,
           "includeConsoleLog": true

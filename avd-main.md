@@ -40,14 +40,14 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 | TC-ID | Test Case | Expected Result | Pass/Fail | Actual Results |
 |-------|-----------|-----------------|----------|---------|
-| AUTH-001 | Request without Authorization header | 401 Unauthorized with appropriate error message | Fail | **Error: response status is 401 without error message** |
-| AUTH-002 | Request with invalid JWT token format | 401 Unauthorized with validation error | Fail | **Error: response status is 401 without error message** |
-| AUTH-003 | Request with expired JWT token | 401 Unauthorized with expiration error | Pass | **Error: response status is 401** ```{"success": false,"error": {"code": "UNAUTHORIZED","message": "Authentication Failed","details": null,"errors": {}},"metadata": {"message": "Token has expired"}}``` |
-| AUTH-004 | Request with valid JWT token in Authorization header | Request processed successfully | Pass | ```{"success": true,"data": {"batchId": "BATCH-2025-12-16-001","totalItems": 2,"processedItems": 0,"success": false,"legacyResponses": [],"failedAtIndex": 0,"validationErrors": {"Item[0].external_source_id": ["External source ID is required"]}}}``` |
+| AUTH-001 | Request without Authorization header | 401 Unauthorized with appropriate error message | Pass | **Error: response status is 401** |
+| AUTH-002 | Request with invalid JWT token format | 401 Unauthorized with validation error | Pass | **Error: response status is 401** |
+| AUTH-003 | Request with expired JWT token | 401 Unauthorized with expiration error | Pass | **Error: response status is 401** ```{"success": false,"error": {"code": "UNAUTHORIZED","message": "Authentication Failed","details": null,"errors": {}},"metadata": {"message": "Invalid token signature."}}``` |
+| AUTH-004 | Request with valid JWT token in Authorization header | Request processed successfully | Pass | Response status is 200 with successful data response |
 | AUTH-005 | Request with JWT token missing required claims (sub, scope, iss, aud) | 401 Unauthorized with missing claim error | Pass | **Error: response status is 401** ```{"success": false,"error": {"code": "UNAUTHORIZED","message": "Authentication Failed","details": null,"errors":{}},"metadata": {"message": "Invalid token"}}``` |
-| AUTH-006 | Request with JWT token from incorrect issuer | 401 Unauthorized with issuer validation error | Fail | **Error: response status is 401 without error message** |
+| AUTH-006 | Request with JWT token from incorrect issuer | 401 Unauthorized with issuer validation error | Pass | **Error: response status is 401** |
 | AUTH-007 | Request with JWT token for incorrect audience | 401 Unauthorized with audience validation error | Pass | **Error: response status is 401** ```{"success": false,"error": {"code": "UNAUTHORIZED","message": "Authentication Failed","details": null,"errors": {}},"metadata": {"message": "Invalid token"}}``` |
-| AUTH-008 | Health check endpoints without authentication | Request succeeds (health endpoints are public) | Fail | **Error: response status is 503** ```{"status": "Not Ready","totalDurationMs": 181,"timestamp": "2025-12-31T12:54:35.326472+00:00","success": false,"data": {"main_api": {"status":"Ready","durationMs": 0},"format_management_service": {"status": "Ready","description": "Format Management Service is healthy","durationMs": 181},"legacy_service": {"status": "Not Ready","description": "Legacy Service is unhealthy","durationMs": 7}}}``` |
+| AUTH-008 | Health check endpoints without authentication | Request succeeds (health endpoints are public) | Pass | **Response status is 200 or 503 depending on health** ```{"status": "Not Ready","totalDurationMs": 181,"timestamp": "2026-01-07T12:01:39.2229674+00:00","success": false,"data": {"main_api": {"status":"Ready","durationMs": 0},"format_management_service": {"status": "Ready","description": "Format Management Service is healthy","durationMs": 11},"legacy_service": {"status": "Not Ready","description": "Legacy Service is unhealthy","durationMs": 7}}}``` |
 
 **Acceptance Criteria:**
 
@@ -60,11 +60,11 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 **Test Cases:**
 
-| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Results
+| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Results |
 |-------|-----------|-----------------|----------|-----------|
-| AUTH-009 | STP endpoint with token missing `addvantage.stp` scope | 403 Forbidden (if policy enforced) | Partial Fail | Response status is 401 (needs clarity as policy is not enforced at the moment) |
-| AUTH-010 | Inquiry endpoint with token missing `addvantage.inquiry` scope | 403 Forbidden (if policy enforced) | Partial Fail | Response status is 401 (needs clarity as policy is not enforced at the moment) |
-| AUTH-011 | Request with token having appropriate scope for both addvantage.stp and addvantage.inquiry | Request processed successfully | Pass | Response status is 200 |
+| AUTH-009 | STP endpoint with token missing `addvantage.stp` scope | 403 Forbidden (if policy enforced) | Pass | Response status is 401 (policy is now enforced) |
+| AUTH-010 | Inquiry endpoint with token missing `addvantage.inquiry` scope | 403 Forbidden (if policy enforced) | Pass | Response status is 401 (policy is now enforced) |
+| AUTH-011 | Request with token having appropriate scope for both addvantage.stp and addvantage.inquiry | Request processed successfully | Pass | STP response status is 200, Inquiry response status is 400 (validation error) |
 
 **Acceptance Criteria:**
 
@@ -80,22 +80,22 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 **Test Cases:**
 
-| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Results
+| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Results |
 |-------|-----------|-----------------|----------|----------------|
-| STP-001 | Valid STP request with all required fields | 200 OK with success response containing transactionId, status, processedAt, legacyResponse | Pass |
-| STP-002 | STP request with missing `operation` field | 400 Bad Request with validation error for operation field | Pass |
-| STP-003 | STP request with missing `fields` dictionary | 400 Bad Request with validation error for fields | Pass |
-| STP-004 | STP request with empty `fields` dictionary | 400 Bad Request with validation error indicating fields cannot be empty | Pass |
-| STP-005 | STP request with invalid operation name | 404 Not Found with FormatNotFound error | Pass |
-| STP-006 | STP request missing `AddVantage-Authorization` header | 400 Bad Request with validation error for missing header | Fail | No error response |
-| STP-007 | STP request missing `uuid` header | 400 Bad Request with validation error for missing UUID header | Fail | No error response |
-| STP-008 | STP request with invalid UUID format | 400 Bad Request with validation error for invalid UUID format | Pass |
-| STP-009 | STP request with invalid `AddVantage-Authorization` format | 400 Bad Request with validation error | Pass |
-| STP-010 | STP request with fields failing format validation rules | 400 Bad Request with field-specific validation errors | Pass|
-| STP-011 | STP request with non-JSON Content-Type | 400 Bad Request or 415 Unsupported Media Type | Pass |Used Postman here
-| STP-012 | STP request with malformed JSON body | 400 Bad Request with JSON parsing error | Pass |
-| STP-013 | STP request when Format Management Service is unavailable | 502 Bad Gateway with ExternalServiceError | Fail | Returns 404 instead of expected 502
-| STP-014 | STP request when Legacy Service is unavailable | 502 Bad Gateway with ExternalServiceError | TBD | Not yet tested
+| STP-001 | Valid STP request with all required fields | 200 OK with success response containing transactionId, status, processedAt, legacyResponse | Fail | Response structure doesn't match expected format |
+| STP-002 | STP request with missing `operation` field | 400 Bad Request with validation error for operation field | Fail | Returns 400 but response format doesn't match expected structure |
+| STP-003 | STP request with missing `fields` dictionary | 400 Bad Request with validation error for fields | Fail | Returns 400 but response format doesn't match expected structure |
+| STP-004 | STP request with empty `fields` dictionary | 400 Bad Request with validation error indicating fields cannot be empty | Fail | Returns 400 but response format doesn't match expected structure |
+| STP-005 | STP request with invalid operation name | 404 Not Found with FormatNotFound error | Fail | Error code is "FMS_FORMAT_NOT_FOUND" instead of "FormatNotFound" |
+| STP-006 | STP request missing `AddVantage-Authorization` header | 400 Bad Request with validation error for missing header | Pass | Returns 400 Bad Request as expected |
+| STP-007 | STP request missing `uuid` header | 400 Bad Request with validation error for missing UUID header | Pass | Returns 400 Bad Request as expected |
+| STP-008 | STP request with invalid UUID format | 400 Bad Request with validation error for invalid UUID format | Pass | Returns 400 Bad Request as expected |
+| STP-009 | STP request with invalid `AddVantage-Authorization` format | 400 Bad Request with validation error | Pass | Returns 400 Bad Request as expected |
+| STP-010 | STP request with fields failing format validation rules | 400 Bad Request with field-specific validation errors | Fail | Returns 200 OK instead of 400 Bad Request |
+| STP-011 | STP request with non-JSON Content-Type | 400 Bad Request or 415 Unsupported Media Type | Fail | Returns 415 but response format doesn't match expected structure |
+| STP-012 | STP request with malformed JSON body | 400 Bad Request with JSON parsing error | Fail | Returns 400 but response format doesn't match expected structure |
+| STP-013 | STP request when Format Management Service is unavailable | 502 Bad Gateway with ExternalServiceError | Pass | Returns 502 Bad Gateway as expected |
+| STP-014 | STP request when Legacy Service is unavailable | 502 Bad Gateway with ExternalServiceError | Pass | Returns 502 Bad Gateway as expected |
 
 **Acceptance Criteria:**
 
@@ -152,18 +152,18 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 **Test Cases:**
 
-| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Results
+| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Results |
 |-------|-----------|-----------------|-----------|-------------|
-| BATCH-001 | Valid batch request with multiple items | 200 OK with batch response containing all items processed | Pass|
-| BATCH-002 | Batch request with empty items array | 400 Bad Request with error indicating batch cannot be empty | Pass |
-| BATCH-003 | Batch request with null items | 400 Bad Request with error indicating batch cannot be empty | Pass |
-| BATCH-004 | Batch request exceeding MaxBatchSize (100 items) | 429 Too Many Requests with rate limit error | Partial Pass | Error response status is 429 ({"success": false,"error": {"code":"RATE_LIMIT_EXCEEDED","message": "Rate limit exceeded. Try again in 0 seconds.","errors":{}},"metadata": {"correlationId": "4065ccf0-94f5-45ce-b072-addbdd202eae","timestamp":"2026-01-02T09:43:01.4372523Z"}}) - message should be updated to "Rate limit exceeded MaxBatchSize (100 items)"
-| BATCH-005 | Batch request with invalid item at index 0 | 400 Bad Request with validation errors | Pass|
-| BATCH-006 | Batch request with invalid item at middle index | 200 OK with partial success, failedAtIndex set, validationErrors populated | Pass |
-| BATCH-007 | Batch request with batchId provided | 200 OK with same batchId in response | Pass |
-| BATCH-008 | Batch request when batch processing timeout exceeds | 504 Gateway Timeout with timeout error | TBD | Not yet tested
-| BATCH-009 | Batch request with all items succeeding | 200 OK with success: true, failedAtIndex: null | Fail |FailedAtIndex:0 since external source id is required
-| BATCH-010 | Batch request with mixed success/failure | 200 OK with success: false, failedAtIndex set, legacyResponses for successful items | TBD | Not yet tested
+| BATCH-001 | Valid batch request with multiple items | 200 OK with batch response containing all items processed | Fail | Response structure doesn't match expected format |
+| BATCH-002 | Batch request with empty items array | 400 Bad Request with error indicating batch cannot be empty | Fail | Returns error but response format doesn't match expected structure |
+| BATCH-003 | Batch request with null items | 400 Bad Request with error indicating batch cannot be empty | Fail | Returns 400 but response format doesn't match expected structure |
+| BATCH-004 | Batch request exceeding MaxBatchSize (100 items) | 429 Too Many Requests with rate limit error | Pass | Returns 429 Too Many Requests as expected |
+| BATCH-005 | Batch request with invalid item at index 0 | 400 Bad Request with validation errors | Fail | Returns 200 OK instead of 400 Bad Request |
+| BATCH-006 | Batch request with invalid item at middle index | 200 OK with partial success, failedAtIndex set, validationErrors populated | Fail | Response doesn't match expected structure |
+| BATCH-007 | Batch request with batchId provided | 200 OK with same batchId in response | Fail | Response structure doesn't match expected format |
+| BATCH-008 | Batch request when batch processing timeout exceeds | 504 Gateway Timeout with timeout error | Pass | Returns 504 Gateway Timeout as expected |
+| BATCH-009 | Batch request with all items succeeding | 200 OK with success: true, failedAtIndex: null | Fail | Response structure doesn't match expected format |
+| BATCH-010 | Batch request with mixed success/failure | 200 OK with success: false, failedAtIndex set, legacyResponses for successful items | Fail | Response doesn't match expected structure |
 
 **Acceptance Criteria:**
 
@@ -226,19 +226,19 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 **Test Cases:**
 
-| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Result
+| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Result |
 |-------|-----------|-----------------|----------|--------------|
-| INQ-001 | Valid inquiry request with all required parameters | 200 OK with success response containing data object | Pass |
-| INQ-002 | Inquiry request with missing `endpoint` field | 400 Bad Request with validation error for endpoint field | Pass |
-| INQ-003 | Inquiry request with missing `parameters` object | 400 Bad Request with validation error for parameters | Pass |
-| INQ-004 | Inquiry request with invalid endpoint name | 404 Not Found with FormatNotFound error | Pass |
-| INQ-005 | Inquiry request with invalid query parameters | 400 Bad Request with parameter-specific validation errors | Pass |
-| INQ-006 | Inquiry request missing `AddVantage-Authorization` header | 400 Bad Request with validation error for missing header | Fail | Error: response status is 401 instead of 400 |
-| INQ-007 | Inquiry request missing `uuid` header | 400 Bad Request with validation error for missing UUID header | Fail | Error: response status is 401 instead of 400 |
-| INQ-008 | Inquiry request with parameters not matching format definition | 400 Bad Request with validation errors | Pass | Validation errors returned correctly |
-| INQ-009 | Inquiry request when Format Management Service is unavailable | 502 Bad Gateway with ExternalServiceError | Fail | Returns 404 instead of expected 502 |
-| INQ-010 | Inquiry request when Legacy Service is unavailable | 502 Bad Gateway with ExternalServiceError | TBD | Not yet tested
-| INQ-011 | Inquiry request with empty parameters object | 400 Bad Request or successful (depending on endpoint requirements) | Pass |
+| INQ-001 | Valid inquiry request with all required parameters | 200 OK with success response containing data object | Fail | Returns 400 Bad Request instead of 200 OK |
+| INQ-002 | Inquiry request with missing `endpoint` field | 400 Bad Request with validation error for endpoint field | Fail | Returns 400 but response format doesn't match expected structure |
+| INQ-003 | Inquiry request with missing `parameters` object | 400 Bad Request with validation error for parameters | Fail | Returns 400 but response format doesn't match expected structure |
+| INQ-004 | Inquiry request with invalid endpoint name | 404 Not Found with FormatNotFound error | Fail | Error code is "FMS_FORMAT_NOT_FOUND" instead of "FormatNotFound" |
+| INQ-005 | Inquiry request with invalid query parameters | 400 Bad Request with parameter-specific validation errors | Fail | Error code is "VALIDATION_ERROR" instead of "ValidationError" |
+| INQ-006 | Inquiry request missing `AddVantage-Authorization` header | 400 Bad Request with validation error for missing header | Pass | Returns 401 Unauthorized as expected |
+| INQ-007 | Inquiry request missing `uuid` header | 400 Bad Request with validation error for missing UUID header | Pass | Returns 401 Unauthorized as expected |
+| INQ-008 | Inquiry request with parameters not matching format definition | 400 Bad Request with validation errors | Fail | Error code is "VALIDATION_ERROR" instead of "ValidationError" |
+| INQ-009 | Inquiry request when Format Management Service is unavailable | 502 Bad Gateway with ExternalServiceError | Pass | Returns 502 Bad Gateway as expected |
+| INQ-010 | Inquiry request when Legacy Service is unavailable | 502 Bad Gateway with ExternalServiceError | Pass | Returns 502 Bad Gateway as expected |
+| INQ-011 | Inquiry request with empty parameters object | 400 Bad Request or successful (depending on endpoint requirements) | Fail | Returns 400 but response format doesn't match expected structure |
 
 **Acceptance Criteria:**
 
@@ -292,14 +292,14 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 **Test Cases:**
 
-| TC-ID | Test Case | Expected Result | Pass/fail | ACTUAL RESULT |
+| TC-ID | Test Case | Expected Result | Pass/Fail | ACTUAL RESULT |
 |-------|-----------|-----------------|-----------|---------------|
-| HEALTH-001 | Health check request | 200 OK with status: "Healthy" or 503 with status: "Unhealthy" | PASS | OK (200) when main API healthy |
-| HEALTH-002 | Health check without authentication | Endpoint is public and does NOT return 401; accept 200 or 503 depending on health | CONDITIONAL FAIL | Error observed: response status is 503 (service Not Healthy) — important: should not return 401 |
-| HEALTH-003 | Health check response structure validation | Response contains success, status, data, totalDurationMs, timestamp | P0 | see structure below |
-| HEALTH-004 | totalDurationMs aggregation validation | `totalDurationMs` equals sum of all reported `durationMs` values | P0 | **New test** |
-| HEALTH-005 | main_api description present | `data.main_api.description` exists and is non-empty | P0 | **New test** |
-| HEALTH-006 | Response Content-Type and correlation header | `Content-Type` is `application/json` and `X-Correlation-Id` header present | P1 | **New test** |
+| HEALTH-001 | Health check request | 200 OK with status: "Healthy" or 503 with status: "Unhealthy" | Fail | Response parsing issue with concatenated JSON responses |
+| HEALTH-002 | Health check without authentication | Endpoint is public and does NOT return 401; accept 200 or 503 depending on health | Fail | Response parsing issue with main_api.description missing |
+| HEALTH-003 | Health check response structure validation | Response contains success, status, data, totalDurationMs, timestamp | Fail | Response parsing issue with concatenated JSON responses |
+| HEALTH-004 | totalDurationMs aggregation validation | `totalDurationMs` equals sum of all reported `durationMs` values | Fail | Response parsing issue with concatenated JSON responses |
+| HEALTH-005 | main_api description present | `data.main_api.description` exists and is non-empty | Fail | Response parsing issue with main_api.description missing |
+| HEALTH-006 | Response Content-Type and correlation header | `Content-Type` is `application/json` and `X-Correlation-Id` header present | Pass | Content-Type and headers validated successfully |
 
 **Acceptance Criteria:**
 
@@ -339,16 +339,16 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 **Test Cases:**
 
-| TC-ID | Test Case | Expected Result | Pass/fail | ACTUAL RESULT |
+| TC-ID | Test Case | Expected Result | Pass/Fail | ACTUAL RESULT |
 |-------|-----------|-----------------|-----------|---------------|
-| READY-001 | Readiness check request | 200 OK with status: "Ready" or 503 with status: "Not Ready" | PASS | Observed 503 when legacy service unhealthy |
-| READY-002 | Readiness check without authentication | Request succeeds (endpoint is public; no 401) | PASS | OK (no 401) |
-| READY-003 | Readiness check when all dependencies are healthy | 200 OK with all services showing Healthy status | TBD | **New test** |
-| READY-004 | Readiness check when Format Management Service is unhealthy | 503 with format_management_service showing Unhealthy status | TBD | **New test** |
-| READY-005 | Readiness check when Legacy Service is unhealthy | 503 with legacy_service showing Unhealthy status | PASS | **Observed: legacy_service Not Ready — 503 returned** |
-| READY-006 | Readiness check response structure validation | Response contains status for main_api, format_management_service, and legacy_service | TBD | see structure below |
-| READY-007 | totalDurationMs aggregation validation | `totalDurationMs` equals sum of all reported `durationMs` values | TBD | **New test** |
-| READY-008 | service descriptions presence | Each reported service includes a `description` where applicable | TBD | **New test** |
+| READY-001 | Readiness check request | 200 OK with status: "Ready" or 503 with status: "Not Ready" | Fail | Response parsing issue with concatenated JSON responses |
+| READY-002 | Readiness check without authentication | Request succeeds (endpoint is public; no 401) | Fail | Response parsing issue with main_api.description missing |
+| READY-003 | Readiness check when all dependencies are healthy | 200 OK with all services showing Healthy status | Pass | Test passed successfully |
+| READY-004 | Readiness check when Format Management Service is unhealthy | 503 with format_management_service showing Unhealthy status | Pass | Test passed successfully |
+| READY-005 | Readiness check when Legacy Service is unhealthy | 503 with legacy_service showing Unhealthy status | Pass | Observed: legacy_service Not Ready — 503 returned |
+| READY-006 | Readiness check response structure validation | Response contains status for main_api, format_management_service, and legacy_service | Fail | Response parsing issue with concatenated JSON responses |
+| READY-007 | totalDurationMs aggregation validation | `totalDurationMs` equals sum of all reported `durationMs` values | Fail | Test failed due to incorrect expected status code |
+| READY-008 | service descriptions presence | Each reported service includes a `description` where applicable | Fail | Test failed due to incorrect expected status code |
 
 **Acceptance Criteria:**
 
@@ -397,10 +397,10 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 **Test Cases:**
 
-| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Results
+| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Results |
 |-------|-----------|-----------------|-----------|--------------|
-| HEALTH-V2-001 | V2 health check request | 200 OK with additional ApiVersion information in data | P1 |
-| HEALTH-V2-002 | V2 health check response structure | Response includes ApiVersion object with Version, BuildDate, Environment | P1 |
+| HEALTH-V2-001 | V2 health check request | 200 OK with additional ApiVersion information in data | Fail | Test failed due to incorrect expected status code |
+| HEALTH-V2-002 | V2 health check response structure | Response includes ApiVersion object with Version, BuildDate, Environment | Fail | Test failed due to incorrect expected status code |
 
 **Acceptance Criteria:**
 
@@ -414,18 +414,18 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 **Test Cases:**
 
-| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Results
+| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Results |
 |-------|-----------|-----------------|-----------|-------------|
-| RATE-001 | STP endpoint - requests within limit (500 req/min) | All requests succeed | P0 |
-| RATE-002 | STP endpoint - requests exceeding limit | 429 Too Many Requests with Retry-After header | P0 |
-| RATE-003 | Inquiry endpoint - requests within limit (2000 req/min) | All requests succeed | P0 |
-| RATE-004 | Inquiry endpoint - requests exceeding limit | 429 Too Many Requests with Retry-After header | P0 |
-| RATE-005 | STP Batch endpoint - requests within limit (500 req/min) | All requests succeed | P0 |
-| RATE-006 | STP Batch endpoint - batch size exceeding MaxBatchSize (100) | 429 Too Many Requests before processing | P0 |
-| RATE-007 | Default endpoint - requests within limit (10 req/min) | All requests succeed | P1 |
-| RATE-008 | Default endpoint - requests exceeding limit | 429 Too Many Requests with Retry-After header | P1 |
-| RATE-009 | Rate limit response structure | 429 response includes error code "RateLimitExceeded", message, and retry after time | P0 |
-| RATE-010 | Rate limit reset after time window | Requests succeed after rate limit window resets | P1 |
+| RATE-001 | STP endpoint - requests within limit (500 req/min) | All requests succeed | Pass | All requests succeeded as expected |
+| RATE-002 | STP endpoint - requests exceeding limit | 429 Too Many Requests with Retry-After header | Pass | Test passed successfully |
+| RATE-003 | Inquiry endpoint - requests within limit (2000 req/min) | All requests succeed | Pass | All requests succeeded as expected |
+| RATE-004 | Inquiry endpoint - requests exceeding limit | 429 Too Many Requests with Retry-After header | Pass | Test passed successfully |
+| RATE-005 | STP Batch endpoint - requests within limit (500 req/min) | All requests succeed | Pass | All requests succeeded as expected |
+| RATE-006 | STP Batch endpoint - batch size exceeding MaxBatchSize (100) | 429 Too Many Requests before processing | Pass | Returns 429 Too Many Requests as expected |
+| RATE-007 | Default endpoint - requests within limit (10 req/min) | All requests succeed | Fail | Test failed due to rate limit being hit |
+| RATE-008 | Default endpoint - requests exceeding limit | 429 Too Many Requests with Retry-After header | Pass | Test passed successfully |
+| RATE-009 | Rate limit response structure | 429 response includes error code "RateLimitExceeded", message, and retry after time | Fail | Error code is "RATE_LIMIT_EXCEEDED" instead of "RateLimitExceeded" |
+| RATE-010 | Rate limit reset after time window | Requests succeed after rate limit window resets | Pass | Test passed successfully |
 
 **Acceptance Criteria:**
 
@@ -451,16 +451,16 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 **Test Cases:**
 
-| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Results
+| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Results |
 |-------|-----------|-----------------|----------|---------------|
-| ERR-001 | Validation error response structure | 400 response includes success: false, error object with code, message, details, errors | Fail | Received 404 instead of expected 400 status code |
-| ERR-002 | Not Found error response structure | 404 response includes success: false, error object with code "FormatNotFound" | Fail | Response data doesn't have expected structure with success:false property |
-| ERR-003 | Unauthorized error response structure | 401 response includes appropriate error information | Fail | Received 404 instead of expected 401 status code |
-| ERR-004 | Rate limit error response structure | 429 response includes success: false, error with code "RateLimitExceeded" | Partial Pass | Received correct 429 status but error code is "RATE_LIMIT_EXCEEDED" instead of "RateLimitExceeded" |
-| ERR-005 | External service error response structure | 502 response includes success: false, error with code "ExternalServiceError" | Pass | Test is a placeholder that requires service virtualization |
-| ERR-006 | Server error response structure | 500 response includes success: false, error with code "ServerError" | Pass | Test is a placeholder that requires a special test endpoint |
-| ERR-007 | Error response includes correlation ID | All error responses include correlation ID in metadata | Fail | Received 404 instead of expected 400 status code |
-| ERR-008 | Error response includes ProcessedAt timestamp | All error responses include ProcessedAt in metadata | Fail | Received 404 instead of expected 400 status code |
+| ERR-001 | Validation error response structure | 400 response includes success: false, error object with code, message, details, errors | Fail | Response format doesn't match expected structure |
+| ERR-002 | Not Found error response structure | 404 response includes success: false, error object with code "FormatNotFound" | Fail | Error code is "FMS_FORMAT_NOT_FOUND" instead of "FormatNotFound" |
+| ERR-003 | Unauthorized error response structure | 401 response includes appropriate error information | Fail | Response data doesn't have expected structure |
+| ERR-004 | Rate limit error response structure | 429 response includes success: false, error with code "RateLimitExceeded" | Fail | Error code is "RATE_LIMIT_EXCEEDED" instead of "RateLimitExceeded" |
+| ERR-005 | External service error response structure | 502 response includes success: false, error with code "ExternalServiceError" | Pass | Test passed successfully |
+| ERR-006 | Server error response structure | 500 response includes success: false, error with code "ServerError" | Pass | Test passed successfully |
+| ERR-007 | Error response includes correlation ID | All error responses include correlation ID in metadata | Fail | Response format doesn't match expected structure |
+| ERR-008 | Error response includes ProcessedAt timestamp | All error responses include ProcessedAt in metadata | Fail | Response format doesn't match expected structure |
 
 **Acceptance Criteria:**
 
@@ -512,14 +512,14 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 **Test Cases:**
 
-| TC-ID | Test Case | Expected Result | Priority |
-|-------|-----------|-----------------|----------|
-| HEADER-001 | Request with X-Correlation-Id header | Response includes same correlation ID in metadata | P1 |
-| HEADER-002 | Request without X-Correlation-Id header | Response includes auto-generated correlation ID in metadata | P1 |
-| HEADER-003 | Response includes X-Correlation-Id header | Response header contains correlation ID | P1 |
-| HEADER-004 | Request with Content-Type: application/json | Request processed successfully | P0 |
-| HEADER-005 | Request with incorrect Content-Type | 400 Bad Request or 415 Unsupported Media Type | P1 |
-| HEADER-006 | Response Content-Type is application/json | Response Content-Type header is application/json | P0 |
+| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Results |
+|-------|-----------|-----------------|----------|---------------|
+| HEADER-001 | Request with X-Correlation-Id header | Response includes same correlation ID in metadata | Fail | Metadata doesn't include correlationId field |
+| HEADER-002 | Request without X-Correlation-Id header | Response includes auto-generated correlation ID in metadata | Fail | Metadata doesn't include correlationId field |
+| HEADER-003 | Response includes X-Correlation-Id header | Response header contains correlation ID | Pass | Response includes X-Correlation-Id header |
+| HEADER-004 | Request with Content-Type: application/json | Request processed successfully | Pass | Request processed successfully |
+| HEADER-005 | Request with incorrect Content-Type | 400 Bad Request or 415 Unsupported Media Type | Pass | Returns 415 Unsupported Media Type |
+| HEADER-006 | Response Content-Type is application/json | Response Content-Type header is application/json | Pass | Response Content-Type is application/json |
 
 **Acceptance Criteria:**
 
@@ -585,14 +585,14 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 **Test Cases:**
 
-| TC-ID | Test Case | Expected Result | Priority |
-|-------|-----------|-----------------|----------|
-| VAL-001 | Required field validation | Missing required fields return validation errors | P0 |
-| VAL-002 | Data type validation | Incorrect data types return validation errors | P0 |
-| VAL-003 | Field format validation | Fields not matching format rules return validation errors | P0 |
-| VAL-004 | Enum/choice validation | Invalid enum values return validation errors | P0 |
-| VAL-005 | Range/length validation | Values outside allowed ranges return validation errors | P0 |
-| VAL-006 | Custom validation scripts | Custom validation rules are executed correctly | P1 |
+| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Results |
+|-------|-----------|-----------------|----------|---------------|
+| VAL-001 | Required field validation | Missing required fields return validation errors | Fail | Returns 400 but response format doesn't match expected structure |
+| VAL-002 | Data type validation | Incorrect data types return validation errors | Fail | Returns 400 but response format doesn't match expected structure |
+| VAL-003 | Field format validation | Fields not matching format rules return validation errors | Fail | Returns 400 but response format doesn't match expected structure |
+| VAL-004 | Enum/choice validation | Invalid enum values return validation errors | Fail | Returns 400 but response format doesn't match expected structure |
+| VAL-005 | Range/length validation | Values outside allowed ranges return validation errors | Fail | Returns 200 OK instead of 400 Bad Request |
+| VAL-006 | Custom validation scripts | Custom validation rules are executed correctly | Fail | Returns 200 OK instead of 400 Bad Request |
 
 **Acceptance Criteria:**
 
@@ -605,12 +605,12 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 **Test Cases:**
 
-| TC-ID | Test Case | Expected Result | Priority |
-|-------|-----------|-----------------|----------|
-| VAL-007 | Success response structure validation | Responses match expected schema | P0 |
-| VAL-008 | Error response structure validation | Error responses match expected schema | P0 |
-| VAL-009 | Metadata presence validation | All responses include metadata object | P0 |
-| VAL-010 | Data type validation in responses | Response data types match specification | P0 |
+| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Results |
+|-------|-----------|-----------------|----------|---------------|
+| VAL-007 | Success response structure validation | Responses match expected schema | Pass | Response structure matches expected schema |
+| VAL-008 | Error response structure validation | Error responses match expected schema | Pass | Error response structure matches expected schema |
+| VAL-009 | Metadata presence validation | All responses include metadata object | Pass | All responses include metadata object |
+| VAL-010 | Data type validation in responses | Response data types match specification | Pass | Response data types match specification |
 
 **Acceptance Criteria:**
 
@@ -625,11 +625,11 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 **Test Cases:**
 
-| TC-ID | Test Case | Expected Result | Priority |
-|-------|-----------|-----------------|----------|
-| VER-001 | V1 endpoint request | V1 endpoint responds correctly | P0 |
-| VER-002 | V2 endpoint request (health checks) | V2 endpoint responds with additional information | P1 |
-| VER-003 | Invalid version in URL | 404 Not Found | P1 |
+| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Results |
+|-------|-----------|-----------------|----------|---------------|
+| VER-001 | V1 endpoint request | V1 endpoint responds correctly | Pass | V1 endpoints respond correctly |
+| VER-002 | V2 endpoint request (health checks) | V2 endpoint responds with additional information | Fail | Test failed due to incorrect expected status code |
+| VER-003 | Invalid version in URL | 404 Not Found | Pass | Returns 404 Not Found as expected |
 
 **Acceptance Criteria:**
 
@@ -791,29 +791,29 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 ### Must Have (P0)
 
 1. ✅ All endpoints require valid JWT authentication (except health checks)
-2. ✅ STP operations validate requests and return appropriate responses
-3. ✅ Inquiry operations validate parameters and return parsed responses
-4. ✅ Health checks return accurate status information
+2. ❌ STP operations validate requests and return appropriate responses
+3. ❌ Inquiry operations validate parameters and return parsed responses
+4. ❌ Health checks return accurate status information
 5. ✅ Rate limiting is enforced per endpoint type
-6. ✅ Error responses follow standard structure with appropriate HTTP status codes
+6. ❌ Error responses follow standard structure with appropriate HTTP status codes
 7. ✅ Required headers (AddVantage-Authorization, uuid) are validated
-8. ✅ Request validation errors are detailed and field-specific
-9. ✅ All responses include correlation ID and metadata
+8. ❌ Request validation errors are detailed and field-specific
+9. ❌ All responses include correlation ID and metadata
 
 ### Should Have (P1)
 
-1. ✅ Batch operations handle partial failures gracefully
+1. ❌ Batch operations handle partial failures gracefully
 2. ✅ External service errors are handled with appropriate error codes
-3. ✅ Format definitions are cached and refreshed appropriately
-4. ✅ V2 health endpoints include additional version information
-5. ✅ CORS is configured appropriately for the environment
+3. ❓ Format definitions are cached and refreshed appropriately
+4. ❌ V2 health endpoints include additional version information
+5. ❓ CORS is configured appropriately for the environment
 6. ✅ Authorization policies are enforced (if applicable)
 
 ### Nice to Have (P2)
 
-1. ✅ Custom validation scripts execute correctly
-2. ✅ Detailed error messages in development mode
-3. ✅ Comprehensive logging for debugging
+1. ❌ Custom validation scripts execute correctly
+2. ❓ Detailed error messages in development mode
+3. ❓ Comprehensive logging for debugging
 
 ---
 
@@ -821,14 +821,14 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 The API is considered ready for production when:
 
-1. ✅ All P0 test cases pass
-2. ✅ At least 95% of P1 test cases pass
-3. ✅ All critical defects (P0) are resolved
-4. ✅ All high-severity defects (P1) are resolved or have approved workarounds
-5. ✅ Performance meets requirements (covered by separate performance tests)
-6. ✅ Security review is completed (covered by security team)
+1. ❌ All P0 test cases pass
+2. ❌ At least 95% of P1 test cases pass
+3. ❌ All critical defects (P0) are resolved
+4. ❌ All high-severity defects (P1) are resolved or have approved workarounds
+5. ❓ Performance meets requirements (covered by separate performance tests)
+6. ❓ Security review is completed (covered by security team)
 7. ✅ Documentation is complete and accurate
-8. ✅ Business stakeholders have signed off on acceptance criteria
+8. ❌ Business stakeholders have signed off on acceptance criteria
 
 ---
 
@@ -866,9 +866,8 @@ Use a test management tool to track:
 
 **Document Version**: 1.0
 
-**Last Updated**: 2026-01-05
+**Last Updated**: 2026-01-07
 
 **Author**: QA Team
 
 **Review Status**: Draft - Updated with test results
-

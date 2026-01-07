@@ -1,72 +1,109 @@
 #!/bin/bash
 
-# Run Error Handling Tests
-# This script runs the error handling tests and generates reports
+# Run Tests Script for AddVantage API Tests
+# This script provides commands for running all tests or specific test files
 
 # Set colors for output
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${YELLOW}=== AddVantage API Error Handling Tests ===${NC}"
-echo -e "${YELLOW}Starting test execution...${NC}"
+# Function to display help
+show_help() {
+  echo -e "${BLUE}AddVantage API Test Runner${NC}"
+  echo ""
+  echo "Usage: ./run-tests.sh [option]"
+  echo ""
+  echo "Options:"
+  echo "  all                  Run all tests"
+  echo "  auth                 Run authentication tests"
+  echo "  stp                  Run STP operations tests"
+  echo "  inquiry              Run inquiry operations tests"
+  echo "  health               Run health check tests"
+  echo "  rate                 Run rate limiting tests"
+  echo "  headers              Run request/response headers tests"
+  echo "  error                Run error handling tests"
+  echo "  validation           Run data validation tests"
+  echo "  report               Run all tests and generate reports"
+  echo "  help                 Show this help message"
+  echo ""
+  echo "Examples:"
+  echo "  ./run-tests.sh all"
+  echo "  ./run-tests.sh auth"
+  echo "  ./run-tests.sh report"
+}
 
-# Check if node_modules exists, if not install dependencies
-if [ ! -d "node_modules" ]; then
-  echo -e "${YELLOW}Installing dependencies...${NC}"
-  npm install
-fi
+# Function to run all tests
+run_all_tests() {
+  echo -e "${GREEN}Running all tests...${NC}"
+  npx jest --verbose
+}
 
-# Run tests with reporting
-echo -e "${YELLOW}Running tests and generating reports...${NC}"
-npm run test:full
+# Function to run specific test file
+run_specific_test() {
+  echo -e "${GREEN}Running $1 tests...${NC}"
+  npx jest --verbose $2
+}
 
-# Check if test reports were generated
-if [ -f "test-report.json" ] && [ -f "test-report.html" ]; then
-  echo -e "${GREEN}Test execution completed!${NC}"
+# Function to run tests and generate reports
+run_tests_with_reports() {
+  echo -e "${GREEN}Running all tests and generating reports...${NC}"
+  npm run test:report
+  npm run generate:results
   echo -e "${GREEN}Reports generated:${NC}"
-  echo -e "  - JSON Report: test-report.json"
-  echo -e "  - HTML Report: test-report.html"
-  echo -e "  - Markdown Report: test-results.md"
-  
-  # Count test results from markdown file
-  if [ -f "test-results.md" ]; then
-    PASS_COUNT=$(grep -c "✅ PASS" test-results.md)
-    FAIL_COUNT=$(grep -c "❌ FAIL" test-results.md)
-    PENDING_COUNT=$(grep -c "⏳ PENDING" test-results.md)
-    
-    echo -e "${YELLOW}Test Summary:${NC}"
-    echo -e "  - Passed: ${GREEN}$PASS_COUNT${NC}"
-    if [ "$FAIL_COUNT" -gt 0 ]; then
-      echo -e "  - Failed: ${RED}$FAIL_COUNT${NC}"
-    else
-      echo -e "  - Failed: ${GREEN}$FAIL_COUNT${NC}"
-    fi
-    if [ "$PENDING_COUNT" -gt 0 ]; then
-      echo -e "  - Pending: ${YELLOW}$PENDING_COUNT${NC}"
-    else
-      echo -e "  - Pending: ${GREEN}$PENDING_COUNT${NC}"
-    fi
-  fi
-  
-  # Open HTML report if on a system with a browser
-  if [ "$(uname)" == "Darwin" ]; then
-    echo -e "${YELLOW}Opening HTML report...${NC}"
-    open test-report.html
-  elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
-    if [ -n "$DISPLAY" ]; then
-      echo -e "${YELLOW}Opening HTML report...${NC}"
-      xdg-open test-report.html
-    fi
-  elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ] || [ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]; then
-    echo -e "${YELLOW}Opening HTML report...${NC}"
-    start test-report.html
-  fi
-else
-  echo -e "${RED}Error: Test reports were not generated.${NC}"
-  echo -e "${RED}Check for errors in the test execution.${NC}"
-  exit 1
+  echo "- HTML Report: test-report.html"
+  echo "- JSON Report: test-report.json"
+  echo "- Markdown Report: test-results.md"
+}
+
+# Check if an argument was provided
+if [ $# -eq 0 ]; then
+  show_help
+  exit 0
 fi
 
-echo -e "${YELLOW}=== Test execution completed ===${NC}"
+# Process the argument
+case "$1" in
+  all)
+    run_all_tests
+    ;;
+  auth)
+    run_specific_test "authentication" "authentication-tests.js"
+    ;;
+  stp)
+    run_specific_test "STP operations" "stp-operations-tests.js"
+    ;;
+  inquiry)
+    run_specific_test "inquiry operations" "inquiry-operations-tests.js"
+    ;;
+  health)
+    run_specific_test "health check" "health-check-tests.js"
+    ;;
+  rate)
+    run_specific_test "rate limiting" "rate-limiting-tests.js"
+    ;;
+  headers)
+    run_specific_test "request/response headers" "headers-tests.js"
+    ;;
+  error)
+    run_specific_test "error handling" "error-handling-tests.js"
+    ;;
+  validation)
+    run_specific_test "data validation" "data-validation-tests.js"
+    ;;
+  report)
+    run_tests_with_reports
+    ;;
+  help)
+    show_help
+    ;;
+  *)
+    echo -e "${RED}Unknown option: $1${NC}"
+    show_help
+    exit 1
+    ;;
+esac
+
+exit 0
