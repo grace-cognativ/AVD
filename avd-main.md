@@ -512,10 +512,10 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 **Test Cases:**
 
-| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Results |
+| TC-ID | Test Case | Expected Result | Pass/Fail | Actual Results |
 |-------|-----------|-----------------|----------|---------------|
-| HEADER-001 | Request with X-Correlation-Id header | Response includes same correlation ID in metadata | Fail | Metadata doesn't include correlationId field |
-| HEADER-002 | Request without X-Correlation-Id header | Response includes auto-generated correlation ID in metadata | Fail | Metadata doesn't include correlationId field |
+| HEADER-001 | Request with X-Correlation-Id header | Response includes same correlation ID in metadata | Fail | No response in metadata |
+| HEADER-002 | Request without X-Correlation-Id header | Response includes auto-generated correlation ID in metadata | Fail | No auto-generated correlation ID in metadata |
 | HEADER-003 | Response includes X-Correlation-Id header | Response header contains correlation ID | Pass | Response includes X-Correlation-Id header |
 | HEADER-004 | Request with Content-Type: application/json | Request processed successfully | Pass | Request processed successfully |
 | HEADER-005 | Request with incorrect Content-Type | 400 Bad Request or 415 Unsupported Media Type | Pass | Returns 415 Unsupported Media Type |
@@ -534,8 +534,8 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 **Test Cases:**
 
-| TC-ID | Test Case | Expected Result | Priority |
-|-------|-----------|-----------------|----------|
+| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Results
+|-------|-----------|-----------------|----------|---------------|
 | CORS-001 | Preflight OPTIONS request from allowed origin | 200 OK with appropriate CORS headers | P1 |
 | CORS-002 | Preflight OPTIONS request from disallowed origin | CORS error (browser blocks request) | P1 |
 | CORS-003 | Actual request from allowed origin | Request succeeds with CORS headers | P1 |
@@ -558,8 +558,8 @@ This document provides a comprehensive test plan and acceptance criteria from a 
 
 **Test Cases:**
 
-| TC-ID | Test Case | Expected Result | Priority |
-|-------|-----------|-----------------|----------|
+| TC-ID | Test Case | Expected Result | Pass/Fail |Actual Results
+|-------|-----------|-----------------|----------|---------------|
 | INT-001 | Format Management Service integration - successful | Format definitions retrieved and cached | P0 |
 | INT-002 | Format Management Service integration - service unavailable | 502 Bad Gateway with appropriate error | P1 |
 | INT-003 | Format Management Service integration - timeout | 502 Bad Gateway or 504 Gateway Timeout | P1 |
